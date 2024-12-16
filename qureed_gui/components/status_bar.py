@@ -9,9 +9,12 @@ TM = ThemeManager()
 import flet as ft
 from theme import ThemeManager
 from logic.project import ProjectManager
+from logic import ProjectManager, SimulationManager
 
 PM = ProjectManager()
+SM = SimulationManager()
 TM = ThemeManager()
+
 
 class StatusBar(ft.Container):
     def __init__(self, page: ft.Page):
@@ -31,12 +34,16 @@ class StatusBar(ft.Container):
             color=TM.get_nested_color("toolbar", "not_ready")
         )
         self.message = ft.Text("", color=TM.get_nested_color("toolbar", "text"))
+        self.message_wrapper = ft.Container(
+            expand=True,
+            content=self.message
+            )
 
         # Layout
         self.content = ft.Row(
             [
                 self.project_status_icon,
-                self.message,
+                self.message_wrapper,
                 self.simulation_status_icon,
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -48,10 +55,9 @@ class StatusBar(ft.Container):
 
         # Register this StatusBar with ProjectManager
         PM.register_status_bar(self)
+        SM.register_status_bar(self)
 
     def update_project_status(self, status: int):
-        print("UPDATED PROJECT STATUS")
-
         if status == 1:
             self.project_status_icon.name = ft.Icons.CHECK_CIRCLE_OUTLINED
             self.project_status_icon.color = TM.get_nested_color("toolbar", "ready")
@@ -62,11 +68,13 @@ class StatusBar(ft.Container):
         self.page.update()
 
     def set_message(self, message: str, timer=True):
+        message = message.replace("\n", "; ")
+        message = message[:200] + "..." if len(message) > 200 else message
         self.message.value = message
         self.page.update()
         if timer:
             self.message_timer = threading.Timer(
-                5.0,
+                10.0,
                 lambda : self.set_message("", timer=False))
             self.message_timer.start()
 

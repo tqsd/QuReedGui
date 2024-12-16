@@ -2,6 +2,8 @@ import flet as ft
 
 from theme import ThemeManager
 from logic.project import ProjectManager
+from .icon_dialog import IconDialog
+from .new_device_dialog import NewDeviceDialog
 
 PM = ProjectManager()
 TM = ThemeManager()
@@ -13,14 +15,46 @@ class Toolbar(ft.Container):
     """
     def __init__(self):
         super().__init__()
-        self.height=50
+        self.height=20
         self.bgcolor=TM.get_nested_color("toolbar","bg")
         self.content=ft.Row(
             [
-             FileMenu()
+             FileMenu(),
+             ProjectMenu()
             ]
         )
 
+class ProjectMenu(ft.SubmenuButton):
+    def __init__(self):
+        super().__init__()
+        self.content=ft.Text("Project",
+            color=TM.get_nested_color("toolbar", "text")
+            )
+        self.controls=[
+            ft.MenuItemButton(
+                content=ft.Text("New Device"),
+                on_click=self.new_device
+                ),
+            ft.MenuItemButton(
+                content=ft.Text("New Device Icon"),
+                on_click=self.add_icon
+                ),
+            ]
+
+    def add_icon(self, e):
+        ic = IconDialog(e.page)
+        e.page.overlay.append(ic)
+        ic.open = True
+        e.page.update()
+
+    def new_device(self, e):
+        ndd = NewDeviceDialog(e.page)
+        e.page.overlay.append(ndd)
+        ndd.open = True
+        e.page.update()
+
+        
+    
 
 class FileMenu(ft.SubmenuButton):
     def __init__(self):
@@ -53,6 +87,8 @@ class FileMenu(ft.SubmenuButton):
 
     def new_project(self, e):
         # Create a TextField for user input
+        if not e.path:
+            return
         name_prompt = ft.TextField(label=f"{e.path}/")
 
         # Define the on_click handler for the Cancel button first

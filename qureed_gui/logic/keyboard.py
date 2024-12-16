@@ -9,13 +9,15 @@ class KeyboardEventDispatcher:
         return cls._instance
 
     def __init__(self):
-        self.registered_hooks = {
-            }
+        if not hasattr(self, "initialized"):
+            self.active = True 
+            self.registered_hooks = {}
         
     def handle_click(self, e):
-        if self.registered_hooks.get(e.key, False):
-            for hook in self.registered_hooks[e.key]:
-                hook(e)
+        if self.active:
+            if self.registered_hooks.get(e.key, False):
+                for hook in self.registered_hooks[e.key]:
+                    hook(e)
     
     def register_hook(self, key:str, hook):
         if self.registered_hooks.get(key, True):

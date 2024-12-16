@@ -1,12 +1,17 @@
 import asyncio
+import sys
+import inspect
+import importlib
 from enum import IntEnum
 import subprocess
 import os
+import re
 import platform
 from pathlib import Path
 import threading
 import toml
-
+import shutil
+from jinja2 import Environment,FileSystemLoader
 
 class ProjectStatus(IntEnum):
     NOT_READY = 0
@@ -21,12 +26,16 @@ class ProjectManager:
         return cls._instance
 
     def __init__(self):
-        self._status=ProjectStatus.READY
-        self.venv = None
-        self.path = None
-        self.base_path = None
-        self.status_bar = None
-        self.board = None
+        if not hasattr(self,"initialized"):
+            self.is_opened = False
+            self._status=ProjectStatus.READY
+            self.venv = None
+            self.path = None
+            self.base_path = None
+            self.status_bar = None
+            self.board = None
+            self.board_manager = None
+            self.initialized=True
 
     @property
     def status(self):
@@ -37,6 +46,9 @@ class ProjectManager:
         if self.status_bar:
             self.status_bar.update_project_status(value)
         self._status = value
+
+    def register_qureed_inspector(self, inspector):
+        self.inspector = inspector
 
     def load_config(self):
         """Load the existing configuration from a TOML file."""
@@ -87,12 +99,11 @@ class ProjectManager:
             return
         self._status=ProjectStatus.NOT_READY
         self.path = path
-        print("New Project")
-        print(path)
         directories = [
             f"{self.path}/custom",
             f"{self.path}/custom/devices",
             f"{self.path}/custom/signals",
+            f"{self.path}/custom/icons",
             f"{self.path}/logs",
             f"{self.path}/plots",
         ]
@@ -113,28 +124,30 @@ class ProjectManager:
             self.create_venv()
             (self.path)
             self.install("photon_weave")
+            self.install("git+ssh://git@github.com/tqsd/qureed.git@master")
+            venv = str(Path(path) / ".venv")
+            self.venv = venv
 
 
+        self.is_opened=True
         thread = threading.Thread(target=configure_project_pip, daemon=True)
         thread.start()
         if self.project_explorer:
             self.project_explorer.update_project()
         
     def open_project(self, path:str):
-        print("Opening project")
         self.path = path
         conf = self.load_config()
         venv = str(Path(path) / ".venv")
         venv = conf.get("venv", venv)
         self.update_config({"venv":venv})
-        print(venv)
-        print(Path(venv).exists())
+        self.venv = venv
         if not Path(venv).exists():
-            print("WHAT")
             self.create_venv()
             self.install()
         else:
             self.status = ProjectStatus.READY
+        self.is_opened = True
 
         default_scheme = Path(path) / "main.json"
         if not default_scheme.exists():
@@ -179,7 +192,6 @@ class ProjectManager:
         self.status=ProjectStatus.READY
 
     def create_venv(self):
-        print("VENV CREATION")
         venv = self.load_config()["venv"]
         self.display_message(f"Creating new virtual env ({venv})", timer=False)
         path = self.path
@@ -211,13 +223,10 @@ class ProjectManager:
         """
         Gets the file tree of the project
         """
-        print("Getting file tree")
-
         def list_files(directory):
             tree = []
             for entry in os.listdir(directory):
                 full_path = os.path.join(directory, entry)
-                print(entry)
                 if entry in [
                     "None",
                     "__init__.py",
@@ -240,10 +249,8 @@ class ProjectManager:
             return tree
 
         if self.path is None:
-            print(self.path)
             return []
         lst = list_files(self.path)
-        print(lst)
 
         def sort_files_folders(items):
             def sort_key(item):
@@ -264,3 +271,105 @@ class ProjectManager:
 
         sort_files_folders(lst)
         return lst
+
+    def add_icon(self, icon_path, icon_name):
+        # Define the destination folder
+        destination_folder = Path(self.path) / "custom" / "icons"
+        destination_folder.mkdir(parents=True, exist_ok=True)  # Create folder if it doesn't exist
+        
+        # Extract the file extension from the source file
+        file_extension = os.path.splitext(icon_path)[1]  # e.g., ".jpg" or ".png"
+        
+        # Create the destination file path
+        destination_file = destination_folder / f"{icon_name}{file_extension}"
+        
+        try:
+            # Copy the file to the destination
+            shutil.copy(icon_path, destination_file)
+            if self.project_explorer:
+                self.project_explorer.update_project()
+            return True, None
+        except FileNotFoundError:
+            return False, f"Error: Source file not found: {icon_path}"
+        except PermissionError:
+            return False, f"Error: Permission denied while copying to {destination_folder}"
+        except Exception as e:
+            return False, f"An unexpected error occurred: {e}"
+
+    def remove_icon(self, icon):
+        pass
+
+    def get_list_of_all_existing_icons(self):
+        icon_path = Path(self.path) / "custom" / "icons"
+        icon_list = os.listdir(icon_path)
+        icon_list = [os.path.splitext(icon)[0] for icon in icon_list]
+        return icon_list
+
+    def get_all_signals(self):
+        pass
+
+    def new_device(self, name, tags, in_ports, out_ports, icon):
+        if not self.inspector:
+            return
+        template_path = self.inspector.get_new_device_template_path()
+        env=Environment(loader=FileSystemLoader(template_path))
+        template=env.get_template("device_template.jinja")
+        gui_name = name
+        class_name = name.title().replace(" ", "")
+        file_name = re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower().replace(" ", "")
+        file_name += ".py"
+        tags = [tag.strip().lower() for tag in tags.split(",")]
+        device=template.render(
+            name=name,
+            class_name=class_name,
+            tags=tags,
+            input_ports=in_ports,
+            output_ports=out_ports,
+            gui_icon=icon
+            )
+        # Save the new device
+        file_location = Path(self.path) / "custom" / "devices" / file_name
+        with open(str(file_location), "w") as f:
+            f.write(device)
+
+        self.display_message(f"Device Created: {file_location}")
+        self.project_explorer.update_project()
+
+
+    def load_class_from_file(self, relative_module_path):
+        # Construct the full path to the module file
+        full_path = Path(self.path) / relative_module_path
+
+        # Resolve the path to ensure it's absolute and normalize any irregular path components
+        full_path = full_path.resolve()
+        if not full_path.exists():
+            raise FileNotFoundError(f"No such file: {full_path}")
+
+        # Debug prints for verification
+        if not full_path.is_relative_to(self.path):
+            raise ValueError("Attempted to access a file outside of the base directory")
+     
+        # Convert the full path to a dot-separated module path relative to the base path
+        module_str = (
+            str(full_path.relative_to(self.path)).replace("/", ".").replace("\\", ".")
+        )
+
+        # Only strip the '.py' suffix if it is at the end
+        if module_str.endswith(".py"):
+            module_str = module_str[:-3]
+
+        class_name = str(Path(full_path).name)[:-3]
+        class_name = "".join(x.capitalize() or "_" for x in class_name.split("_"))
+        # Dynamically import the module
+
+        base_path = str(Path(self.path).resolve())
+        if base_path not in sys.path:
+            sys.path.append(base_path)
+
+        module = importlib.import_module(module_str)
+        print(module)
+
+        # Inspect the module and return the first found class
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            if name == class_name and obj.__module__ == module.__name__:
+                return obj

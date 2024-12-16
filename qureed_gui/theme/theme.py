@@ -38,12 +38,22 @@ class ThemeManager:
                 "board": {
                     "bg": "#a19bac",
                     },
+                "board_bar":{
+                    "bg":"#150f1a",
+                    "text":"white"
+                     },
                 "device": {
+                    "bg":"#2c2c2c",
                     "header":"black",
                      },
                 "board_component": {
                     "bg": "#303030",
                     "content": "#3a4f48",
+                     },
+                "port": {
+                    "bg":"#c7c7c7",
+                    "bg_connected": "#feea3b",
+                    "bg_hover": "#cf3131",
                      },
                 "project_explorer": {
                     "bg": "#0b031a",

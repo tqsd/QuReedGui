@@ -2,10 +2,11 @@ import flet as ft
 from pathlib import Path
 
 from theme import ThemeManager
-from logic import ProjectManager
+from logic import ProjectManager, BoardManager
 
 TM = ThemeManager()
 PM = ProjectManager()
+BM = BoardManager()
 
 
 class ProjectExplorer(ft.Container):
@@ -23,7 +24,6 @@ class ProjectExplorer(ft.Container):
         self.color = TM.get_nested_color("project_explorer", "color")
         self.file_list = ft.Column(expand=1, spacing=0, auto_scroll=True)
         self.files = PM.get_file_tree()
-        print(self.files)
         self.content = ft.Stack(
             [
              ft.Container(top=10, right=5, bottom=0, left=5, content=self.file_list),
@@ -55,8 +55,6 @@ class ProjectExplorer(ft.Container):
         self.file_list.controls = recursive_tree_update(self.files)
         self.file_list.update()
         self.page.update()
-        
-
 
     def toggle_explorer(self, e):
         if self.width == 250:
@@ -65,6 +63,7 @@ class ProjectExplorer(ft.Container):
         else:
             self.width = 250
             self.file_list.visible = True
+        BM.explorer_expansion(self.width)
         self.update()
         
         
@@ -128,6 +127,17 @@ class Directory(ft.Column):
         self.page.update()
 
 
+class DraggableDevice(ft.Draggable):
+    """
+    Wrapped to carry information to the Board on drag
+    """
+
+    def __init__(self, d_cls, group: str, content: ft.Control, content_feedback):
+        self.device_class = d_cls["class"]
+        super().__init__(
+            group=group, content=content, content_feedback=content_feedback
+        )
+
 class File(ft.TextButton):
     def __init__(self, path):
         self.path = path
@@ -144,7 +154,8 @@ class File(ft.TextButton):
                     width=70,
                     height=50,
                     bgcolor="black",
-                    opacity=0.2,
+                    opacity=0.3,
+                    border_radius=5
                 ),
                 content=ft.Text(
                     self.cls.gui_name,
@@ -161,5 +172,4 @@ class File(ft.TextButton):
 
     def handle_on_click(self, e):
         if self.name[-5:] == ".json":
-            pm = ProjectManager()
-            pm.open_scheme(self.name)
+            BM.open_scheme(self.path)
