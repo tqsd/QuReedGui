@@ -52,5 +52,6 @@ def main(page: ft.Page):
     
     # Add container to the page
     page.add(container)
+    print(page.window.height)
 
 ft.app(main)

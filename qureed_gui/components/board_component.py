@@ -12,8 +12,8 @@ TM = ThemeManager()
 class BoardComponent(ft.Container):
     def __init__(self, location:tuple):
         super().__init__()
-        self.top=location[1]+5000
-        self.left=location[0]+5000
+        self.top=location[1]
+        self.left=location[0]
         self.height=50
         self.width=75
         self.border_radius=4
@@ -51,7 +51,6 @@ class BoardComponent(ft.Container):
         self.ports_right = Ports(height = self.height-10, right=0, parent=self)
 
     def handle_device_move(self, e):
-        print("MOVING")
         self.top += e.delta_y
         self.left += e.delta_x
         self.top = max(self.top, 0)

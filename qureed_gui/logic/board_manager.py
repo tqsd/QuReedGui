@@ -12,19 +12,28 @@ class BoardManager:
             self.board=None
             self.opened_scheme=None
             self.board_bar=None
+            self.board_wrapper=None
             self.initialized=True
 
     def register_board_bar(self, board_bar):
         self.board_bar=board_bar
 
+    def save_scheme(self):
+        pass
+
     def open_scheme(self, scheme):
-        print("Opening scheme", scheme)
-        self.opened_scheme = scheme
-        if self.board_bar:
-            self.board_bar.update_scheme_name(self.opened_scheme)
+        if self.opened_scheme != scheme:
+            self.save_scheme()
+            self.board.clear_board()
+            self.opened_scheme = scheme
+            if self.board_bar:
+                self.board_bar.update_scheme_name(self.opened_scheme)
 
     def register_board(self, board):
         self.board=board
+
+    def register_board_wrapper(self, board_wrapper):
+        self.board_wrapper = board_wrapper
 
     def add_device(self, device_class):
         if self.board:
@@ -32,11 +41,11 @@ class BoardManager:
             self.board.add_device(device_class)
 
     def display_info(self, info:str):
-        if self.board:
-            self.board.display_info(info)
+        if self.board_wrapper:
+            self.board_wrapper.display_info(info)
 
-    def center_board(self):
-        self.board.center_board()
+    def center_board(self, e):
+        self.board.center_board(e)
 
     def explorer_expansion(self, width):
         if self.board_bar:

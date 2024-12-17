@@ -8,11 +8,16 @@ CM = ConnectionManager()
 class Canvas(ft.Container):
     def __init__(self):
         super().__init__()
-        self.top=-5000
-        self.left=-5000
+        self.top=0
+        self.left=0
+        self.expand = True
         self.canvas=cv.Canvas()
         self.content=self.canvas
         CM.register_canvas(self)
+
+    def clear_canvas(self):
+        self.canvas.shapes = []
+        self.update()
 
     def create_connection(self, loc1, loc2, adjust=True):
         print(loc1, loc2)

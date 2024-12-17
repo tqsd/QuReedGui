@@ -12,6 +12,7 @@ class KeyboardEventDispatcher:
         if not hasattr(self, "initialized"):
             self.active = True 
             self.registered_hooks = {}
+            self.initialized = True
         
     def handle_click(self, e):
         if self.active:

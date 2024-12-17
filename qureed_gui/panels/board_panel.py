@@ -1,5 +1,6 @@
 import flet as ft
-from components import ProjectExplorer, Board
+from components import ProjectExplorer, BoardContainer
+from components.board import Board
 from theme import ThemeManager
 
 TM = ThemeManager()
@@ -11,6 +12,6 @@ class BoardPanel(ft.Stack):
         self.page = page
         self.expand = True
         self.controls = [
-            Board(page),
+            BoardContainer(page),
             ProjectExplorer(page),
             ]
