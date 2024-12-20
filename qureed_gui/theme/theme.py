@@ -50,6 +50,11 @@ class ThemeManager:
                     "bg": "#303030",
                     "content": "#3a4f48",
                      },
+                "device_settings":{
+                    "bg":"#201d29",
+                    "text":"white",
+                    "input_border_color":"white",
+                     },
                 "port": {
                     "bg":"#c7c7c7",
                     "bg_connected": "#feea3b",

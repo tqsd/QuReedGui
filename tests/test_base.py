@@ -40,3 +40,7 @@ def test_tab_click(driver):
     # Verify tab 2 is selected (customize based on UI feedback)
     selected_tab = driver.find_element(By.XPATH, "//div[contains(text(),'2') and @class='selected']")
     assert selected_tab is not None, "Tab 2 is not selected after click!"
+
+
+
+    

@@ -1,12 +1,21 @@
 """
 QuReed Gui entry point
 """
+import threading
+
 import flet as ft
 
 from components import Toolbar, StatusBar
 from panels import BoardPanel
 from theme import ThemeManager
-from logic import KeyboardEventDispatcher
+from logic.keyboard import KeyboardEventDispatcher, start_pynput_listener
+
+def window_focus(e):
+    KED = KeyboardEventDispatcher()
+    if e.type == ft.WindowEventType.BLUR:
+        KED.focused = False
+    elif e.type == ft.WindowEventType.FOCUS:
+        KED.focused = True
 
 def main(page: ft.Page):
     page.title = "QuReed"
@@ -52,6 +61,8 @@ def main(page: ft.Page):
     
     # Add container to the page
     page.add(container)
+    page.window.on_event=window_focus
     print(page.window.height)
+    threading.Thread(target=start_pynput_listener, args=(KED,), daemon=True).start()
 
 ft.app(main)

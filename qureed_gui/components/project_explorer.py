@@ -2,11 +2,11 @@ import flet as ft
 from pathlib import Path
 
 from theme import ThemeManager
-from logic import ProjectManager, BoardManager
+from logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
+
+LMH = LogicModuleHandler()
 
 TM = ThemeManager()
-PM = ProjectManager()
-BM = BoardManager()
 
 
 class ProjectExplorer(ft.Container):
@@ -23,6 +23,7 @@ class ProjectExplorer(ft.Container):
         self.bgcolor = TM.get_nested_color("project_explorer", "bg")
         self.color = TM.get_nested_color("project_explorer", "color")
         self.file_list = ft.Column(expand=1, spacing=0, auto_scroll=True)
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.files = PM.get_file_tree()
         self.content = ft.Stack(
             [
@@ -39,7 +40,7 @@ class ProjectExplorer(ft.Container):
         PM.register_project_explorer(self)
 
     def update_project(self):
-        print("UPDATE FILE EXPLORER")
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.files = PM.get_file_tree()
         def recursive_tree_update(files):
             elements = []
@@ -57,6 +58,7 @@ class ProjectExplorer(ft.Container):
         self.page.update()
 
     def toggle_explorer(self, e):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         if self.width == 250:
             self.width = 5
             self.file_list.visible = False
@@ -108,8 +110,8 @@ class Directory(ft.Column):
         self.update_file_tree()
 
     def update_file_tree(self):
-        pm = ProjectManager()
-        self.files = pm.get_file_tree()
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        self.files = PM.get_file_tree()
 
         def recursive_tree_update(files):
             elements = []
@@ -134,21 +136,29 @@ class DraggableDevice(ft.Draggable):
 
     def __init__(self, d_cls, group: str, content: ft.Control, content_feedback):
         self.device_class = d_cls["class"]
+        self.device_mc = d_cls["device_mc"]
         super().__init__(
             group=group, content=content, content_feedback=content_feedback
         )
 
 class File(ft.TextButton):
     def __init__(self, path):
+        super().__init__()
         self.path = path
         self.name = Path(path).name
-        super().__init__()
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+
 
         if self.name[-3:] == ".py":
-            pm = ProjectManager()
-            self.cls = pm.load_class_from_file(self.path)
+            cls_name = ''.join(w.capitalize() for w in self.name[:-3].split("_"))
+            cls_path = str(Path(self.path)).replace(".py", "").replace("/", ".")
+
+            self.device_mc = f"{str(Path(self.path)).replace('.py','').replace('/', '.')}.{cls_name}"
+            self.cls = PM.load_class_from_path(f"{cls_path}.{cls_name}")
+
+            print(self.device_mc)
             self.content = DraggableDevice(
-                d_cls={"class": self.cls},
+                d_cls={"class": self.cls, "device_mc": self.device_mc},
                 group="device",
                 content_feedback=ft.Container(
                     width=70,
@@ -171,5 +181,6 @@ class File(ft.TextButton):
         self.on_click = self.handle_on_click
 
     def handle_on_click(self, e):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         if self.name[-5:] == ".json":
             BM.open_scheme(self.path)

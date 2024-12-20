@@ -4,10 +4,10 @@ import flet as ft
 
 from theme import ThemeManager
 from logic import BoardManager, ConnectionManager
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 TM = ThemeManager()
-BM = BoardManager()
-CM = ConnectionManager()
+LMH = LogicModuleHandler()
 
 class Ports(ft.Container):
     def __init__(self, height, left=None, right=None, ports=None, device_instance=None, parent=None):
@@ -118,22 +118,25 @@ class Port(ft.Container):
         
 
     def handle_on_enter(self, e):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.display_info(f"{self.port_label}:{self.port_type.signal_type.__name__}")
         self.hover = True
         self.update_bg_color()
-        #self.content.controls[0].bgcolor = TM.get_nested_color("port","bg_hover")
 
     def handle_on_exit(self, e):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.display_info(f"")
         self.hover = False
         self.update_bg_color()
 
     def handle_on_tap(self,e):
+        CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
         success = CM.connect_action(e,self.port_label, self.device_instance, self)
         if not self.connected:
             self.connected = success
 
     def handle_on_secondary(self, e):
+        CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
         CM.disconnect(self)
 
     def set_connection(self, connection=None) -> None:

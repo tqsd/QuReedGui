@@ -4,6 +4,7 @@ import inspect
 import importlib
 from enum import IntEnum
 import subprocess
+import json
 import os
 import re
 import platform
@@ -12,6 +13,11 @@ import threading
 import toml
 import shutil
 from jinja2 import Environment,FileSystemLoader
+
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+LMH = LogicModuleHandler()
+
 
 class ProjectStatus(IntEnum):
     NOT_READY = 0
@@ -34,7 +40,9 @@ class ProjectManager:
             self.base_path = None
             self.status_bar = None
             self.board = None
-            self.board_manager = None
+            self.device_menu = None
+            self.inspector = None
+            LMH.register(LogicModuleEnum.PROJECT_MANAGER, self)
             self.initialized=True
 
     @property
@@ -47,8 +55,89 @@ class ProjectManager:
             self.status_bar.update_project_status(value)
         self._status = value
 
+    def register_device_menu(self, device_menu):
+        self.device_menu = device_menu
+
     def register_qureed_inspector(self, inspector):
         self.inspector = inspector
+
+    def save_scheme(self, *args, **kwargs):
+        from components.device import Device
+        from logic import SimulationManager, BoardManager
+        from components.board_component import BoardComponent
+        SM = SimulationManager()
+        BM = BoardManager()
+        if not BM.opened_scheme:
+            return
+        json_descriptor = {
+            "devices": [],
+            "connections": [],
+        }
+        for device in BM.device_controls:
+            if not isinstance(device, BoardComponent):
+                continue
+            dev_class = f"{device.device_class.__module__}.{device.device_class.__name__}"
+            if isinstance(device, Device):
+                dev_descriptor = {
+                    "device":device.device_mc,
+                    "location":(device.left, device.top),
+                    "name":device.device_instance.name,
+                    "uuid":device.device_instance.ref.uuid,
+                    }
+            json_descriptor["devices"].append(dev_descriptor)
+        for s in SM.signals:
+            signal = {
+                "signal":f"{type(s).__module__}.{type(s).__name__}",
+                "conn":[]
+                }
+            for p in s.ports:
+                port={
+                    "device_uuid":p.device.ref.uuid,
+                    "port":p.label
+                    }
+                signal["conn"].append(port)
+            json_descriptor["connections"].append(signal)
+
+        with open(f"{self.path}/{BM.opened_scheme}", "w") as json_file:
+            json.dump(json_descriptor, json_file, indent=4)
+
+        self.display_message(f"Scheme {BM.opened_scheme} saved")
+
+    def load_scheme(self, scheme):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+
+        # Get the devices from the json
+        with open(f"{self.path}/{scheme}", "r") as f:
+            data = json.load(f)
+
+        if "devices" not in data.keys():
+            return
+        devices = []
+        for d in data["devices"]:
+            device = {
+                "class": CL.get_class_from_path(d["device"]),
+                "device_mc":d["device"],
+                "location":d["location"],
+                "kwargs":{
+                    "name":d["name"],
+                    "uid":d["uuid"],
+                      }
+                }
+            devices.append(device)
+        self.board.load_devices_bulk(devices)
+        if "connections" in data.keys():
+            self.board.load_connections_bulk(data["connections"])
+
+    def get_device_class(self, device_mc):
+        device_mc = device_mc.split("/")
+        class_name = device_mc[-1]
+        device_path = device_mc[:-1]
+        if "custom" in device_mc:
+            return self.load_class_from_file("/".join(device_path))
+        else:
+            return self.inspector.load_device_class(".".join(device_mc))
+        
 
     def load_config(self):
         """Load the existing configuration from a TOML file."""
@@ -130,6 +219,8 @@ class ProjectManager:
 
 
         self.is_opened=True
+        if self.device_menu:
+            self.device_menu.activate()
         thread = threading.Thread(target=configure_project_pip, daemon=True)
         thread.start()
         if self.project_explorer:
@@ -155,6 +246,9 @@ class ProjectManager:
                 file.write("{}")
         if self.project_explorer:
             self.project_explorer.update_project()
+
+        if self.device_menu:
+            self.device_menu.activate()
      
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)
@@ -335,8 +429,13 @@ class ProjectManager:
         self.display_message(f"Device Created: {file_location}")
         self.project_explorer.update_project()
 
+    def load_class_from_path(self, module_path:str):
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        return CL.get_class_from_path(module_path)
 
     def load_class_from_file(self, relative_module_path):
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        CL.get_class_from_path(relative_module_path)
         # Construct the full path to the module file
         full_path = Path(self.path) / relative_module_path
 
@@ -367,7 +466,6 @@ class ProjectManager:
             sys.path.append(base_path)
 
         module = importlib.import_module(module_str)
-        print(module)
 
         # Inspect the module and return the first found class
         for name, obj in inspect.getmembers(module, inspect.isclass):

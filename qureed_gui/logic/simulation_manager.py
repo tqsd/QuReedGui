@@ -1,9 +1,9 @@
 """
 Manages the simulation
 """
-from .board_manager import BoardManager
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
-BM = BoardManager()
+LMH = LogicModuleHandler()
 
 class SimulationManager:
     _instance = None
@@ -18,7 +18,12 @@ class SimulationManager:
             self.status_bar = None
             self.devices = []
             self.signals = []
+            LMH.register(LogicModuleEnum.SIMULATION_MANAGER, self)
             self.initialized = True
+
+    def clear_simulation(self):
+        self.devices = []
+        self.signals = []
         
     def register_status_bar(self, status_bar):
         self.status_bar = status_bar
@@ -35,6 +40,7 @@ class SimulationManager:
         sig = sig_cls()
         if dev1 is dev2:
             raise ValueError("Cannot connect to self")
+        print(dev1.ports[port_label_1], sig)
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
@@ -44,7 +50,7 @@ class SimulationManager:
         return sig
 
     def remove_connection(self, sig):
-        print(sig.ports)
+        print("removing connection")
         for p in sig.ports:
             p.signal = None
         self.signals.remove(sig)
@@ -52,3 +58,6 @@ class SimulationManager:
     def display_message(self, message:str, timer=True):
         if self.status_bar:
             self.status_bar.set_message(message, timer)
+
+    def get_device(self, uuid):
+        return [d for d in self.devices if d.ref.uuid == uuid][0]

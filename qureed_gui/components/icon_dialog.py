@@ -44,6 +44,7 @@ class IconDialog(ft.AlertDialog):
             content=ft.TextField(
                 label="Image Name",
                 on_change=self.on_image_name_change,
+                error_text=""
                 )
             )
 
@@ -123,7 +124,7 @@ class IconDialog(ft.AlertDialog):
             e.page.overlay.append(snack_bar)
             e.page.update()
             return
-        if not self.image_name_container.content.error_text == None:
+        if not self.image_name_container.content.error_text == "":
             snack_bar = ft.SnackBar(content=ft.Text("Choose another name"))
             snack_bar.open = True
             e.page.overlay.append(snack_bar)

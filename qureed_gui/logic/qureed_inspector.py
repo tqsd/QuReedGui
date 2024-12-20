@@ -25,6 +25,36 @@ class QureedInspector:
             PM.register_qureed_inspector(self)
             self.initialized = True
 
+    def load_device_class(self, device_mc):
+        if os.name == "nt":
+            site_packages = os.join(PM.venv, "Lib", "site-packages")
+        else:
+            lib_path = os.path.join(PM.venv, "lib")
+            python_versions = [folder for folder in os.listdir(lib_path) if folder.startswith("python")
+                ]
+            if not python_versions:
+                raise FileNotFoundError("No Python Versions found")
+            latest_version=sorted(python_versions, reverse=True)[0]
+            site_packages=os.path.join(lib_path, latest_version, "site-packages")
+        if not os.path.exists(site_packages):
+            raise FileNotFoundError(f"site-packages directory not found in the virtual environment:{site_packages}")
+
+        if site_packages not in sys.path:
+            sys.path.insert(0, site_packages)
+
+        spec = importlib.util.find_spec("qureed")
+        if not spec:
+            raise ImportError("Module qureed not found in the virtual environment") 
+
+        print(device_mc)
+        module_name = ".".join(device_mc.split(".")[:-1])
+        print(module_name)
+        print("------------------------")
+        module = importlib.import_module(module_name)
+
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            if obj.__module__ == module_name:
+                return obj
 
     def find_qureed_gui_devices(self):
         base_module = qureed.devices

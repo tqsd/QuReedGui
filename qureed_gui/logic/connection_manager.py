@@ -1,10 +1,11 @@
 """
 Manages the connections between the ports
 """
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .simulation_manager import SimulationManager
 from components.connection import Connection
 
-SM = SimulationManager()
+LMH = LogicModuleHandler()
 
 class ConnectionManager:
     _instance = None
@@ -16,11 +17,12 @@ class ConnectionManager:
 
     def __init__(self):
         if not hasattr(self, "initialized"):
-            self.initialized = True
             self.first_port = None
             self.canvas = None
             self.canvas_connections = {}
             self.all_connections = {}
+            LMH.register(LogicModuleEnum.CONNECTION_MANAGER, self)
+            self.initialized = True
 
     def register_canvas(self, canvas):
         self.canvas = canvas
@@ -33,7 +35,11 @@ class ConnectionManager:
     def connect_action_interrupt(self):
         self.first_port = None
 
+    def get_signal_class(self, signal_mc):
+        self.pro
+
     def connect_action(self, e, port_label, device_instance, port):
+        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         connection = None
         if self.first_port is None:
             self.first_port = (device_instance,port_label, port)
@@ -61,26 +67,48 @@ class ConnectionManager:
                 SM.display_message("ERROR: " + str(e))
                 self.clear()
                 return False
-            if port not in self.all_connections.keys():
-                self.all_connections[port] = []
-            if self.first_port[1] not in self.all_connections.keys():
-                self.all_connections[self.first_port[2]] = []
-            self.all_connections[port].append((self.first_port[2], connection))
-            self.all_connections[self.first_port[2]].append((port, connection))
-            print("Something should be in the dictionary")
-            print(self.all_connections)
+
+            self.register_connection(port, self.first_port[2], connection)
             self.first_port = None
             return True
+
+    def load_connection(self, sig_cls, device1, port1, device2, port2):
+        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        sig = SM.create_connection(
+            sig_cls,
+            device1.device_instance,
+            port1.port_label,
+            device2.device_instance,
+            port2.port_label
+            )
+        connection = Connection(port1, port2, self.canvas.canvas, sig)
+        port1.set_connection(connection)
+        port2.set_connection(connection)
+        self.register_connection(port1, port2, connection)
+        connection.draw()
+            
+    def register_connection(self, port1, port2, connection):
+        if port1 not in self.all_connections.keys():
+            self.all_connections[port1] = []
+        if port2 not in self.all_connections.keys():
+            self.all_connections[port2] = []
+        self.all_connections[port1].append((port2, connection))
+        self.all_connections[port2].append((port1, connection))
         
     def disconnect(self, port):
+        print("DISCONNECT")
+        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         port.set_connection()
-        print("WHAT DO WE HAVE HERE")
-        print(self.all_connections)
+        if port not in self.all_connections.keys():
+            return
+        if len(self.all_connections[port]) == 0:
+            return
+        
         connection = self.all_connections[port][0][1]
         connection.remove()
         for other_port in self.all_connections[port]:
-            SM.remove_connection(connection.signal)
             print(other_port)
+            SM.remove_connection(connection.signal)
             other_port[0].set_connection()
             self.all_connections[other_port[0]] = []
         self.all_connections[port] = []

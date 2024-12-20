@@ -175,7 +175,6 @@ class NewDeviceDialog(ft.AlertDialog):
                     e.page.overlay.append(snack_bar)
                     e.page.update()
                     return
-
                     
         icon = self.icon_select.get_icon()
         PM.new_device(
@@ -186,6 +185,8 @@ class NewDeviceDialog(ft.AlertDialog):
             icon=icon
         )
         KED.active = True
+        self.open = False
+        e.page.update()
 
     def on_cancel(self, e):
         self.open = False  # Set the dialog's open property to False

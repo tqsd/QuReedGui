@@ -2,10 +2,12 @@ import flet as ft
 
 from theme import ThemeManager
 from logic.project import ProjectManager
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .icon_dialog import IconDialog
 from .new_device_dialog import NewDeviceDialog
 
 PM = ProjectManager()
+LMH = LogicModuleHandler()
 TM = ThemeManager()
 
 
@@ -27,19 +29,34 @@ class Toolbar(ft.Container):
 class ProjectMenu(ft.SubmenuButton):
     def __init__(self):
         super().__init__()
-        self.content=ft.Text("Project",
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.register_device_menu(self)
+        self.content=ft.Text("Devices",
             color=TM.get_nested_color("toolbar", "text")
             )
         self.controls=[
             ft.MenuItemButton(
-                content=ft.Text("New Device"),
-                on_click=self.new_device
+                content=ft.Text("Create New Device"),
+                on_click=None
                 ),
             ft.MenuItemButton(
-                content=ft.Text("New Device Icon"),
-                on_click=self.add_icon
+                content=ft.Text("Add New Device Icon"),
+                on_click=None
                 ),
             ]
+
+    def toggle_menu(self):
+        print("MENU CLICKED")
+        self.is_menu_open = not self.is_menu_open
+
+    def activate(self):
+        self.controls[0].on_click = self.new_device
+        self.controls[1].on_click = self.add_icon
+
+    def deactivate(self):
+        self.controls[0].on_click = None
+        self.controls[1].on_click = None
+
 
     def add_icon(self, e):
         ic = IconDialog(e.page)
@@ -73,7 +90,8 @@ class FileMenu(ft.SubmenuButton):
                  on_click= lambda e: self.pick_dir(self.open_project, e)
              ),
              ft.MenuItemButton(
-                 content=ft.Text("New Device")
+                 content=ft.Text("Save Scheme"),
+                 on_click=self.save_scheme
              ),
             ]
         )
@@ -128,3 +146,7 @@ class FileMenu(ft.SubmenuButton):
     def open_project(self, e):
         PM.open_project(e.path)
         e.page.update()
+
+    def save_scheme(self, e):
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.save_scheme()

@@ -1,40 +1,55 @@
+import inspect
 import flet as ft
 from flet.core.adaptive_control import AdaptiveControl
 
 import flet.canvas as cv
 
 from theme import ThemeManager
-from logic import (
-    ProjectManager, KeyboardEventDispatcher,
-    BoardManager, get_device_control,
-    SimulationManager
-    )
+from logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
+from logic.board_helpers import get_device_control
 from .device_creation import DeviceCreation
 from .canvas import Canvas
+from .select_box import SelectBox
+from .device_settings import DeviceSettings
 
+LMH = LogicModuleHandler()
 TM = ThemeManager()
-PM = ProjectManager()
-KED = KeyboardEventDispatcher()
-BM = BoardManager()
 OFFSET = 0
 BOARD_SIZE = 10000
 
 class Board(ft.Container):
     def __init__(self,page, location_widget):
         super().__init__()
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.register_board(self)
+        BM.register_board(self)
         self.page = page
         self.location_widget = location_widget
         self.top = 0
         self.left = 0
         self.bottom = 0
         self.board_offset = [BOARD_SIZE / 2, BOARD_SIZE / 2]
-        BM.register_board(self)
         self.right = 0
+        self.transform=ft.transform.Scale
         self.canvas = Canvas()
+
+        self.select_box = SelectBox()
+
+        SeM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
+        self.gesture_detection = ft.GestureDetector(
+            on_tap=lambda e: SeM.deselect_all(),
+            on_horizontal_drag_start=self.select_box.sb_start,
+            on_horizontal_drag_update=self.select_box.sb_update,
+            on_horizontal_drag_end=lambda e: self.select_box.sb_stop(e,self.board)
+        )
+        
         self.board = ft.Stack(
             expand=True,
             controls=[
-                self.canvas
+                self.canvas,
+                self.select_box,
+                self.gesture_detection
             ]
         )
         self.board_wrapper = ft.Container(
@@ -53,6 +68,9 @@ class Board(ft.Container):
                 controls=[self.board_wrapper]
                 )]
             )
+    @property
+    def device_controls(self):
+        return self.board.controls[1:]
 
     @property
     def location(self):
@@ -65,7 +83,10 @@ class Board(ft.Container):
 
     def clear_board(self):
         self.canvas.clear_canvas()
-        self.board.controls = [self.canvas]
+        self.board.controls = [
+            self.canvas,
+            self.select_box,
+            self.gesture_detection]
         self.center_board()
         
 
@@ -78,7 +99,6 @@ class Board(ft.Container):
         self.location_widget.update_location(*self.location)
             
     def move_board(self, e):
-        print("Moving the board", e)
         location = self.location
         location[0] -= e.delta_x
         location[1] -= e.delta_y
@@ -103,7 +123,7 @@ class Board(ft.Container):
         self.location_widget.update_location(*self.location)
 
         
-    def add_device(self, device_class, location=None):
+    def add_device(self, device_class, device_mc, location=None):
         if not location:
             location = [o+500 for o in self.board_offset]
         else:
@@ -112,12 +132,70 @@ class Board(ft.Container):
             
 
         device_location = location
-        print(device_location)
         self.board.controls.append(
-            get_device_control(device_class)(device_location, device_class=device_class)
+            get_device_control(device_class)(
+                device_location,
+                device_mc,
+                device_class=device_class)
             )
         self.board.update()
 
+    def load_devices_bulk(self, device_list):
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        device_controls = []
+        for device in device_list:
+            print(device)
+            self.board.controls.append(
+                get_device_control(device["class"])(
+                    device["location"],
+                    device["device_mc"],
+                    device["class"],
+                    **device["kwargs"]
+                    )
+                )
+        self.board.update()
+
+    def load_connections_bulk(self, connections):
+        CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        for connection in connections:
+            print(connection["signal"])
+            sig_cls = CL.get_class_from_path(connection["signal"])
+            CM.load_connection(
+                sig_cls,
+                self.get_device(connection["conn"][0]["device_uuid"]),
+                self.get_port(
+                    connection["conn"][0]["device_uuid"],
+                    connection["conn"][0]["port"]),
+                self.get_device(connection["conn"][1]["device_uuid"]),
+                self.get_port(
+                    connection["conn"][1]["device_uuid"],
+                    connection["conn"][1]["port"]),
+                )
+
+    def get_device(self, uuid):
+        from components.board_component import BoardComponent
+        for device in self.board.controls:
+            if not isinstance(device, BoardComponent):
+                continue
+            if hasattr(device, "device_instance"):
+                if device.device_instance.ref.uuid == uuid:
+                    return device
+
+    def get_port(self, device_uuid, port_label):
+        device = self.get_device(device_uuid)
+        ports = device.device_instance.ports[port_label]
+        if ports.direction=="input":
+            ports = device.ports_left
+        elif ports.direction=="output":
+            ports = device.ports_right
+
+        for port in ports.content.controls:
+            if port.port_label == port_label:
+                return port
+
+
+        
 class BoardContainer(ft.Container):
     def __init__(self, page:ft.Page):
         super().__init__()
@@ -126,20 +204,24 @@ class BoardContainer(ft.Container):
         self.right=0
         self.left=0
         self.bgcolor = TM.get_nested_color("board", "bg")
-        PM.register_board(self)
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
         KED.register_hook(' ', self.handle_new_device)
+        KED.register_hook('s', PM.save_scheme, ctrl=True)
         self.offset_x, self.offset_y = (0,0)
 
         self.board_bar = BoardBar()
         self.location = Location()
         self.info = Info()
         self.board = Board(page, self.location)
+        self.device_settings = DeviceSettings()
         self.stack= ft.Stack(
             [
              self.board,
              self.board_bar,
              self.location,
              self.info,
+             self.device_settings
             ],
             #width=float("inf"),
             #height=float("inf"),
@@ -155,15 +237,17 @@ class BoardContainer(ft.Container):
 
     def handle_new_device(self, e):
         self.page.open(self.device_creation_modal)
+        self.device_creation_modal.update_dialog()
 
     def drag_accept(self, e):
         c = self.page.get_control(e.src_id)
-        self.board.add_device(c.device_class, [e.x, e.y])
+        self.board.add_device(c.device_class, c.device_mc, [e.x, e.y])
 
         
 class BoardBar(ft.Container):
     def __init__(self):
         super().__init__()
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         self.top = 0
         self.right = 0
         self.left = 250
@@ -180,8 +264,8 @@ class BoardBar(ft.Container):
         BM.register_board_bar(self)
 
     def update_scheme_name(self, name):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         self.current_scheme.value = BM.opened_scheme if BM.opened_scheme else "No Scheme Opened"
-        print(self.current_scheme_name)
         self.update()
 
 class Location(ft.Container):
@@ -204,6 +288,7 @@ class Location(ft.Container):
         self.update()
 
     def handle_on_click(self,e):
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.center_board(e)
 
 class Info(ft.Container):
@@ -213,11 +298,13 @@ class Info(ft.Container):
         self.right = 5
         self.height = 25
         self.width = 400
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        BM.register_board_info(self)
         self.content = ft.Text(
             "",
             text_align=ft.TextAlign.RIGHT
             )
 
-    def updade_info(self, info):
+    def update_info(self, info):
         self.content.value = info
         self.update()
