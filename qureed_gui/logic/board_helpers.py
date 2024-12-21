@@ -2,8 +2,8 @@ import importlib.resources as pkg_resources
 from pathlib import Path
 import base64
 
-from .project import ProjectManager
-PM = ProjectManager()
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+LMH = LogicModuleHandler()
 
 def get_device_control(device_class):
     """
@@ -17,14 +17,16 @@ def get_device_control(device_class):
     return Device
 
 def get_device_icon(device):
+    PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+    CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
     if "venv" in device.gui_icon or "custom" in device.gui_icon:
-        print(PM.path)
-        print(device.gui_icon)
         path = str(Path(PM.path) / str(device.gui_icon[1:]))
-        print(path)
     else:
-        path = pkg_resources.files("qureed.gui.assets")
+        path = CL.get_project_site_packages_dir()
+        path = path / "qureed" / "assets"
         path = str(path / device.gui_icon)
+        print(path)
+
     with open(path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 

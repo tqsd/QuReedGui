@@ -227,6 +227,7 @@ class ProjectManager:
             self.project_explorer.update_project()
         
     def open_project(self, path:str):
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
         self.path = path
         conf = self.load_config()
         venv = str(Path(path) / ".venv")
@@ -240,6 +241,8 @@ class ProjectManager:
             self.status = ProjectStatus.READY
         self.is_opened = True
 
+        CL.load_module_from_venv("qureed")
+
         default_scheme = Path(path) / "main.json"
         if not default_scheme.exists():
             with open(str(default_scheme), "w") as file:
@@ -249,6 +252,7 @@ class ProjectManager:
 
         if self.device_menu:
             self.device_menu.activate()
+        
      
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)

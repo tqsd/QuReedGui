@@ -42,6 +42,7 @@ class DeviceSettings(ft.Container):
         self.device = None
         self.title = ft
         self.padding = ft.padding.all(5)
+        self.settings = []
         self.content=ft.Column(
             [
              ft.Text(
@@ -51,15 +52,20 @@ class DeviceSettings(ft.Container):
                  text_align=ft.TextAlign.CENTER
              ),
              ft.Divider(),
-             Setting(self.device.device_instance, "name", "Device Name"),
+             *self.settings
             ],
             expand=True,
             alignment=ft.MainAxisAlignment.CENTER
             )
 
     def display_settings(self, device):
-        self.visible = True
         self.device = device
+        print(dir(device.device_instance))
+        print(self.device.device_instance.properties)
+        self.settings = [
+            Setting(self.device.device_instance, "name", "Device Name"),
+            ]
+        self.visible = True
         self.update()
 
     def hide_settings(self):

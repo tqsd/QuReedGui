@@ -3,15 +3,11 @@ import os
 import flet as ft
 
 from logic import get_device_icon_absolute_path
-from logic import ProjectManager
-from logic import QureedInspector
-from logic import KeyboardEventDispatcher
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from theme import ThemeManager
 
+LMH = LogicModuleHandler()
 TM = ThemeManager()
-PM = ProjectManager()
-QI = QureedInspector()
-KED = KeyboardEventDispatcher()
 
 DIALOG_HEIGHT = 500
 DIALOG_WIDTH = 700
@@ -80,7 +76,8 @@ class IconSelect(ft.Container):
         self.icons = [
             (f"*{icon}", f"{PM.path}/custom/icons/{icon}.png")
             for icon in self.custom_icons]
-        qureed_icons = [os.path.splitext(os.path.basename(path))[0] for path in self.qureed_icons]
+        #qureed_icons = [os.path.splitext(os.path.basename(path))[0] for path in self.qureed_icons]
+        qureed_icons = []
         self.icons.extend(
             zip(qureed_icons, self.qureed_icons)
         )
@@ -118,6 +115,7 @@ class IconSelect(ft.Container):
 
 class NewDeviceDialog(ft.AlertDialog):
     def __init__(self, page):
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         super().__init__()
         self.modal = True
         self.existing_icon_list = PM.get_list_of_all_existing_icons()
@@ -127,7 +125,8 @@ class NewDeviceDialog(ft.AlertDialog):
             ft.TextButton("Cancel", on_click=self.on_cancel)
             ]
         self.device_name = ft.TextField(label="New device name")
-        signals = QI.get_qureed_signals()
+        #signals = QI.get_qureed_signals()
+        signals = []
         self.input_ports = PortCreation("Input Ports", signals)
         self.output_ports = PortCreation("Output Ports", signals)
         self.icon_select = IconSelect()

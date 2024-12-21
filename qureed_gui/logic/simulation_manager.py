@@ -44,7 +44,7 @@ class SimulationManager:
         dev1.register_signal(signal=sig, port_label=port_label_1)
         dev2.register_signal(signal=sig, port_label=port_label_2)
         self.signals.append(sig)
-        name = lambda dev: dev.name if dev.name else dev.__class__.__name__
+        name = lambda dev: dev.__class__.__name__
         self.display_message(
             f"Connection Created {name(dev1)}:{port_label_1}-{sig_cls.__name__}-{name(dev2)}:{port_label_2}")
         return sig

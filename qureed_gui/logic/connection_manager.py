@@ -1,6 +1,8 @@
 """
 Manages the connections between the ports
 """
+import traceback
+
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .simulation_manager import SimulationManager
 from components.connection import Connection
@@ -64,7 +66,9 @@ class ConnectionManager:
                 connection.draw()
             except Exception as e:
                 print("ERROR", e)
+                err=traceback.format_exc()
                 SM.display_message("ERROR: " + str(e))
+                print(err)
                 self.clear()
                 return False
 

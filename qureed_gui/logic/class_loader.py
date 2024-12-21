@@ -21,6 +21,23 @@ class ClassLoader:
             LMH.register(LogicModuleEnum.CLASS_LOADER, self)
             self.initialized=True
 
+    def load_module_from_venv(self, module):
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        site_packages = self.get_project_site_packages_dir()
+        if not site_packages.exists():
+            raise FileNotFoundError(f"Site-packages directory not found: {site_packages}")
+
+        # Temporarily add the foreign site-packages to sys.path
+        sys.path.append(str(site_packages))
+        try:
+            # Import the module
+            imported_module = importlib.import_module(module)
+            return imported_module
+        finally:
+            # Remove the site-packages path to avoid polluting sys.path
+            sys.path.remove(str(site_packages))
+
+
     def get_class_from_path(self, class_string):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         base_path = PM.path
