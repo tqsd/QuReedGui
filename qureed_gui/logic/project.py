@@ -61,8 +61,48 @@ class ProjectManager:
     def register_qureed_inspector(self, inspector):
         self.inspector = inspector
 
+    def serialize_properties(self, properties):
+        if isinstance(properties, dict):
+            return {k:self.serialize_properties(v) for k,v in properties.items()}
+        elif isinstance(properties, type):
+            return properties.__name__
+        elif isinstance(properties,object):
+            return str(properties)
+        return properties
+
+    def deserialize_properties(self, properties, custom_type_mapping=None):
+        if custom_type_mapping is None:
+            custom_type_mapping = {}
+
+        default_type_mapping = {
+            "str": str,
+            "int": int,
+            "float": float,
+            "bool": bool,
+            "list": list,
+            "dict": dict,
+            "tuple": tuple,
+            "set": set,
+            "NoneType": type(None),
+        }
+
+        # Combine default and custom type mappings
+        type_mapping = {**default_type_mapping, **custom_type_mapping}
+
+        def deserialize_value(value):
+            if isinstance(value, dict):
+                # Recursively deserialize nested dictionaries
+                return {k: deserialize_value(v) for k, v in value.items()}
+            elif isinstance(value, str) and value in type_mapping:
+                # Convert type name strings back into type objects
+                return type_mapping[value]
+            return value
+
+        return deserialize_value(properties)
+
     def save_scheme(self, *args, **kwargs):
         from components.device import Device
+        from components.variable import Variable
         from logic import SimulationManager, BoardManager
         from components.board_component import BoardComponent
         SM = SimulationManager()
@@ -77,12 +117,15 @@ class ProjectManager:
             if not isinstance(device, BoardComponent):
                 continue
             dev_class = f"{device.device_class.__module__}.{device.device_class.__name__}"
-            if isinstance(device, Device):
+            if isinstance(device, (Device,Variable)):
+                properties = self.serialize_properties(device.device_instance.properties)
+                print(device.device_mc)
+
                 dev_descriptor = {
                     "device":device.device_mc,
                     "location":(device.left, device.top),
-                    "name":device.device_instance.name,
                     "uuid":device.device_instance.ref.uuid,
+                    "properties":properties
                     }
             json_descriptor["devices"].append(dev_descriptor)
         for s in SM.signals:
@@ -119,8 +162,8 @@ class ProjectManager:
                 "class": CL.get_class_from_path(d["device"]),
                 "device_mc":d["device"],
                 "location":d["location"],
+                "properties":self.deserialize_properties(d["properties"]),
                 "kwargs":{
-                    "name":d["name"],
                     "uid":d["uuid"],
                       }
                 }
@@ -406,9 +449,11 @@ class ProjectManager:
     def get_all_signals(self):
         pass
 
-    def new_device(self, name, tags, in_ports, out_ports, icon):
-        if not self.inspector:
-            return
+    def new_device(self, name, tags, in_ports, out_ports, icon,properties):
+        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        templates_module= CL.load_module_from_venv("qureed.templates")
+        template_dir = os.path.dirname(os.path.abspath(templates_module.__file__))
+        print(template_dir)
         template_path = self.inspector.get_new_device_template_path()
         env=Environment(loader=FileSystemLoader(template_path))
         template=env.get_template("device_template.jinja")
@@ -423,10 +468,12 @@ class ProjectManager:
             tags=tags,
             input_ports=in_ports,
             output_ports=out_ports,
-            gui_icon=icon
+            gui_icon=icon,
+            properties=properties
             )
         # Save the new device
         file_location = Path(self.path) / "custom" / "devices" / file_name
+        print(device)
         with open(str(file_location), "w") as f:
             f.write(device)
 

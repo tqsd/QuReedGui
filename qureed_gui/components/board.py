@@ -1,6 +1,6 @@
 import inspect
 import flet as ft
-from flet.core.adaptive_control import AdaptiveControl
+
 
 import flet.canvas as cv
 
@@ -132,12 +132,16 @@ class Board(ft.Container):
             
 
         device_location = location
-        self.board.controls.append(
-            get_device_control(device_class)(
+        result = get_device_control(device_class)(
                 device_location,
                 device_mc,
                 device_class=device_class)
-            )
+        print(result)
+        if isinstance(result, list):
+            self.board.controls.extend(result)
+        else:
+            self.board.controls.append(result)
+        print(self.board.controls)
         self.board.update()
 
     def load_devices_bulk(self, device_list):
@@ -145,14 +149,17 @@ class Board(ft.Container):
         device_controls = []
         for device in device_list:
             print(device)
-            self.board.controls.append(
-                get_device_control(device["class"])(
-                    device["location"],
-                    device["device_mc"],
-                    device["class"],
-                    **device["kwargs"]
-                    )
+            result = get_device_control(device["class"])(
+                device["location"],
+                device["device_mc"],
+                device["class"],
+                device["properties"],
+                **device["kwargs"]
                 )
+            if isinstance(result, list):
+                self.board.controls.extend(result)
+            else:
+                self.board.controls.append(result)
         self.board.update()
 
     def load_connections_bulk(self, connections):
@@ -210,18 +217,21 @@ class BoardContainer(ft.Container):
         KED.register_hook('s', PM.save_scheme, ctrl=True)
         self.offset_x, self.offset_y = (0,0)
 
+        self.device_creation_modal= DeviceCreation()
         self.board_bar = BoardBar()
         self.location = Location()
         self.info = Info()
         self.board = Board(page, self.location)
         self.device_settings = DeviceSettings()
+        self.controls = Controls(self.device_creation_modal)
         self.stack= ft.Stack(
             [
              self.board,
              self.board_bar,
              self.location,
              self.info,
-             self.device_settings
+             self.device_settings,
+             self.controls
             ],
             #width=float("inf"),
             #height=float("inf"),
@@ -233,7 +243,6 @@ class BoardContainer(ft.Container):
                 on_accept=self.drag_accept
             )
             )
-        self.device_creation_modal= DeviceCreation()
 
     def handle_new_device(self, e):
         self.page.open(self.device_creation_modal)
@@ -308,3 +317,28 @@ class Info(ft.Container):
     def update_info(self, info):
         self.content.value = info
         self.update()
+
+
+class Controls(ft.Container):
+    def __init__(self, device_creation_modal):
+        super().__init__()
+        self.device_creation_modal = device_creation_modal
+        self.top = 30
+        self.height = 100
+        self.width = 50
+        self.left = 250
+        self.content = ft.Column(
+            controls=[
+                ft.TextButton(
+                    text="",
+                    icon=ft.Icons.ADD_ROUNDED,
+                    on_click=self.add_device
+                      )
+            ]
+            )
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        BM.board_controls = self
+
+    def add_device(self,e):
+        self.page.open(self.device_creation_modal)
+        self.device_creation_modal.update_dialog()

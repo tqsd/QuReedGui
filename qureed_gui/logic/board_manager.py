@@ -17,6 +17,7 @@ class BoardManager:
             self.board_bar=None
             self.board_wrapper=None
             self.board_info=None
+            self.board_controls=None
             LMH.register(LogicModuleEnum.BOARD_MANAGER, self)
             self.initialized=True
 
@@ -65,6 +66,9 @@ class BoardManager:
         if self.board_bar:
             self.board_bar.left=width
             self.board_bar.update()
+        if self.board_controls:
+            self.board_controls.left=width
+            self.board_controls.update()
 
     def remove_device(self, device):
         self.board.board.controls.remove(device)

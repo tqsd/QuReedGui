@@ -42,7 +42,10 @@ class SelectionManager:
 
     def deselect_all(self):
         for component in self.selected_components:
-            component.deselect()
+            try:
+                component.deselect()
+            except Exception:
+                print("Component doesn't exist anymore")
         self.selected_components = []
         self.device_settings.hide_settings()
         

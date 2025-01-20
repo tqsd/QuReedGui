@@ -10,10 +10,15 @@ def get_device_control(device_class):
     Based on the given class flet control is returned
     """
     from components.device import Device
+    from components.variable import Variable
+    from components.anchor import create_anchors
     if hasattr(device_class, "gui_tags"):
         if isinstance(device_class.gui_tags, list):
             if "variable" in device_class.gui_tags:
-                return None
+                return Variable
+            if device_class.gui_name == "Anchor":
+                print("Creating anchor")
+                return create_anchors
     return Device
 
 def get_device_icon(device):

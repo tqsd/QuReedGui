@@ -52,10 +52,14 @@ class ConnectionManager:
 
             # We select the signal which is higher in the inheritance chain
             sig_cls = None
-            if issubclass(sig_cls_1, sig_cls_2):
+            if issubclass(sig_cls_2, sig_cls_1):
+                print("IS SUBCLASS")
                 sig_cls = sig_cls_2
             else:
+                print("IS SUBCLASS")
                 sig_cls = sig_cls_1
+            print(sig_cls_1, sig_cls_2)
+            print(sig_cls)
 
             try:
                 sig = SM.create_connection(sig_cls, self.first_port[0], self.first_port[1],
@@ -100,7 +104,6 @@ class ConnectionManager:
         self.all_connections[port2].append((port1, connection))
         
     def disconnect(self, port):
-        print("DISCONNECT")
         SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         port.set_connection()
         if port not in self.all_connections.keys():
@@ -111,7 +114,6 @@ class ConnectionManager:
         connection = self.all_connections[port][0][1]
         connection.remove()
         for other_port in self.all_connections[port]:
-            print(other_port)
             SM.remove_connection(connection.signal)
             other_port[0].set_connection()
             self.all_connections[other_port[0]] = []

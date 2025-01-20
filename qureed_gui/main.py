@@ -23,7 +23,7 @@ def main(page: ft.Page):
     page.spacing = 0
 
     KED = KeyboardEventDispatcher()
-    page.on_keyboard_event = KED.handle_click
+    #page.on_keyboard_event = KED.handle_click
 
     TM = ThemeManager()
 

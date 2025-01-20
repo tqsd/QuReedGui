@@ -40,6 +40,12 @@ class Ports(ft.Container):
         self.content = ft.Stack(
             controls=controls)
 
+    def register_device_instance(self, device_instance):
+        print("Registering device instance: Ports,", device_instance)
+        self.device_instance = device_instance
+        for port in self.content.controls:
+            port.register_device_instance(device_instance)
+
     @property
     def parent(self):
         return self._parent
@@ -98,6 +104,10 @@ class Port(ft.Container):
             ]
             )
 
+    def register_device_instance(self, device_instance):
+        self.device_instance = device_instance
+        print(f"Registering {hex(id(self))}, {device_instance}")
+
     def choose_bg_color(self):
         if self.hover:
             return TM.get_nested_color("port", "bg_hover")
@@ -115,7 +125,6 @@ class Port(ft.Container):
         x = ports_location[0] + 5
         y = ports_location[1] + self.top + 5
         return (x,y)
-        
 
     def handle_on_enter(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
@@ -131,6 +140,7 @@ class Port(ft.Container):
 
     def handle_on_tap(self,e):
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
+        print(f"USING {hex(id(self))}, {self.device_instance}")
         success = CM.connect_action(e,self.port_label, self.device_instance, self)
         if not self.connected:
             self.connected = success

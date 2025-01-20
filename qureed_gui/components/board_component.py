@@ -12,12 +12,12 @@ TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 class BoardComponent(ft.Container):
-    def __init__(self, location:tuple):
+    def __init__(self, location:tuple, height, width):
         super().__init__()
         self.top=location[1]
         self.left=location[0]
-        self.height=50
-        self.width=75
+        self.height = height
+        self.width = width
         self.border_radius=4
         self.bgcolor=TM.get_nested_color("board_component", "bg")
         self._compute_ports()
