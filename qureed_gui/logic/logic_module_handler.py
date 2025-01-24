@@ -8,6 +8,7 @@ class LogicModuleEnum(StrEnum):
     SIMULATION_MANAGER = "simulation_manager"
     CONNECTION_MANAGER = "connection_manager"
     SELECTION_MANAGER = "selection_manager"
+    SERVER_MANAGER = "server_manager"
 
 class LogicModuleHandler:
     _instance = None

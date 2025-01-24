@@ -6,6 +6,7 @@ from .connection_manager import ConnectionManager
 from .simulation_manager import SimulationManager
 from .class_loader import ClassLoader
 from .selection_manager import SelectionManager
+from .server_manager import ServeManager
 
 PM = ProjectManager()
 KED = KeyboardEventDispatcher()
@@ -14,3 +15,4 @@ CM = ConnectionManager()
 SM = SimulationManager()
 CL = ClassLoader()
 SeM = SelectionManager()
+SvM = ServeManager()

@@ -270,7 +270,12 @@ class ProjectManager:
             self.project_explorer.update_project()
         
     def open_project(self, path:str):
+        """
+        Opens an existing project and
+        start a server in the project and connect to it
+        """
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         self.path = path
         conf = self.load_config()
         venv = str(Path(path) / ".venv")
@@ -282,6 +287,11 @@ class ProjectManager:
             self.install()
         else:
             self.status = ProjectStatus.READY
+
+        
+        SvM.start()
+        SvM.connect_venv()
+        return
         self.is_opened = True
 
         CL.load_module_from_venv("qureed")
