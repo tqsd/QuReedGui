@@ -155,15 +155,7 @@ class ProjectManager:
         -----------
             scheme (server_pb2.OpenBoardResponse): The scheme to load
         """
-        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-
-        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
-
-
         devices = []
-        print(scheme)
-        print(scheme.devices)
         self.board.load_devices_bulk(scheme.devices)
         self.board.load_connections_bulk(scheme.connections)
 

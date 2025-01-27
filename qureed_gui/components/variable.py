@@ -83,8 +83,6 @@ class Variable(BoardComponent):
         SM.remove_device(self.device_instance)
 
     def update(self):
-        self.contains.content.value = str(
-            self.device_instance.properties["value"].get("value", None))
         self.width = 40 + len(self.contains.content.value)*9
         super().update()
         

@@ -155,42 +155,36 @@ class Board(ft.Container):
 
     def load_connections_bulk(self, connections):
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-        return
         for connection in connections:
-            sig_cls = CL.get_class_from_path(connection["signal"])
-            CM.load_connection(
-                sig_cls,
-                self.get_device(connection["conn"][0]["device_uuid"]),
-                self.get_port(
-                    connection["conn"][0]["device_uuid"],
-                    connection["conn"][0]["port"]),
-                self.get_device(connection["conn"][1]["device_uuid"]),
-                self.get_port(
-                    connection["conn"][1]["device_uuid"],
-                    connection["conn"][1]["port"]),
-                )
+            port1 = self.get_port(connection.device_one_uuid, connection.device_one_port_label)
+            port2 = self.get_port(connection.device_two_uuid, connection.device_two_port_label)
+            print(port1)
+            print(type(port1))
+            CM.load_connection(port1, port2)
+            
 
     def get_device(self, uuid):
         from components.board_component import BoardComponent
         for device in self.board.controls:
             if not isinstance(device, BoardComponent):
                 continue
-            if hasattr(device, "device_instance"):
-                if device.device_instance.ref.uuid == uuid:
-                    return device
+            if device.device.uuid == uuid:
+                return device
 
     def get_port(self, device_uuid, port_label):
         device = self.get_device(device_uuid)
-        ports = device.device_instance.ports[port_label]
-        if ports.direction=="input":
+        for p in device.device.ports:
+            if p.label == port_label:
+                port = p
+
+        if port.direction=="input":
             ports = device.ports_left
-        elif ports.direction=="output":
+        elif port.direction=="output":
             ports = device.ports_right
 
-        for port in ports.content.controls:
-            if port.port_label == port_label:
-                return port
+        for p in ports.content.controls:
+            if p.port_label == port.label:
+                return p
 
 
         

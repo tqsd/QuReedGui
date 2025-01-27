@@ -51,16 +51,6 @@ class ConnectionManager:
             sig_cls_2 = device_instance.ports[port_label].signal_type
 
             # We select the signal which is higher in the inheritance chain
-            sig_cls = None
-            if issubclass(sig_cls_2, sig_cls_1):
-                print("IS SUBCLASS")
-                sig_cls = sig_cls_2
-            else:
-                print("IS SUBCLASS")
-                sig_cls = sig_cls_1
-            print(sig_cls_1, sig_cls_2)
-            print(sig_cls)
-
             try:
                 sig = SM.create_connection(sig_cls, self.first_port[0], self.first_port[1],
                                      device_instance, port_label)
@@ -80,16 +70,11 @@ class ConnectionManager:
             self.first_port = None
             return True
 
-    def load_connection(self, sig_cls, device1, port1, device2, port2):
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
-        sig = SM.create_connection(
-            sig_cls,
-            device1.device_instance,
-            port1.port_label,
-            device2.device_instance,
-            port2.port_label
-            )
-        connection = Connection(port1, port2, self.canvas.canvas, sig)
+    def load_connection(self, port1, port2):
+        """
+        Renders the connection, which already exist in the backend
+        """
+        connection = Connection(port1, port2, self.canvas.canvas)
         port1.set_connection(connection)
         port2.set_connection(connection)
         self.register_connection(port1, port2, connection)

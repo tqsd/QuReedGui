@@ -4,14 +4,10 @@ import flet.canvas as cv
 
 class Connection:
 
-    def __init__(self, port_a, port_b, canvas, signal):
+    def __init__(self, port_a, port_b, canvas):
         self.port_a = port_a
         self.port_b = port_b
-        self.signal = signal
         self._start_point = list(port_a.location)
-        print("THE PORT CONNECTIONS")
-        print(port_a.location)
-        print(port_b.location)
         self._end_point = list(port_b.location)
         self.canvas = canvas
         
