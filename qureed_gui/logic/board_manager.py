@@ -35,14 +35,17 @@ class BoardManager:
     def open_scheme(self, scheme):
         SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         if self.opened_scheme != scheme:
-            PM.save_scheme()
-            SM.clear_simulation()
             self.board.clear_board()
             self.opened_scheme = scheme
             if self.board_bar:
                 self.board_bar.update_scheme_name(self.opened_scheme)
-            PM.load_scheme(scheme)
+            scheme_resp = SvM.open_scheme(scheme) 
+            print(type(scheme_resp))
+            if scheme_resp.status == "success":
+                print("SUCCES, NOW LOAD THE DEVICES GRAPHICALLY")
+                PM.load_scheme(scheme_resp)
 
 
     def register_board(self, board):

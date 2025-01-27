@@ -15,6 +15,7 @@ import shutil
 from jinja2 import Environment,FileSystemLoader
 
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_project_server import server_pb2
 
 LMH = LogicModuleHandler()
 
@@ -146,31 +147,25 @@ class ProjectManager:
 
         self.display_message(f"Scheme {BM.opened_scheme} saved")
 
-    def load_scheme(self, scheme):
+    def load_scheme(self, scheme: server_pb2.OpenBoardResponse):
+        """
+        Load devices and connections from the given scheme.
+
+        Parameters:
+        -----------
+            scheme (server_pb2.OpenBoardResponse): The scheme to load
+        """
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
 
-        # Get the devices from the json
-        with open(f"{self.path}/{scheme}", "r") as f:
-            data = json.load(f)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
 
-        if "devices" not in data.keys():
-            return
+
         devices = []
-        for d in data["devices"]:
-            device = {
-                "class": CL.get_class_from_path(d["device"]),
-                "device_mc":d["device"],
-                "location":d["location"],
-                "properties":self.deserialize_properties(d["properties"]),
-                "kwargs":{
-                    "uid":d["uuid"],
-                      }
-                }
-            devices.append(device)
-        self.board.load_devices_bulk(devices)
-        if "connections" in data.keys():
-            self.board.load_connections_bulk(data["connections"])
+        print(scheme)
+        print(scheme.devices)
+        self.board.load_devices_bulk(scheme.devices)
+        self.board.load_connections_bulk(scheme.connections)
 
     def get_device_class(self, device_mc):
         device_mc = device_mc.split("/")
@@ -291,11 +286,7 @@ class ProjectManager:
         
         SvM.start()
         SvM.connect_venv()
-        return
         self.is_opened = True
-
-        CL.load_module_from_venv("qureed")
-
         default_scheme = Path(path) / "main.json"
         if not default_scheme.exists():
             with open(str(default_scheme), "w") as file:
@@ -303,10 +294,10 @@ class ProjectManager:
         if self.project_explorer:
             self.project_explorer.update_project()
 
-        if self.device_menu:
-            self.device_menu.activate()
-        
-     
+        #if self.device_menu:
+        #    self.device_menu.activate()
+        return
+
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)
         self.status=ProjectStatus.NOT_READY

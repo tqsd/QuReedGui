@@ -128,7 +128,7 @@ class Port(ft.Container):
 
     def handle_on_enter(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
-        BM.display_info(f"{self.port_label}:{self.port_type.signal_type.__name__}")
+        BM.display_info(f"{self.port_label}:{self.port_type.signal_type}")
         self.hover = True
         self.update_bg_color()
 

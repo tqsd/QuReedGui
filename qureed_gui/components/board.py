@@ -136,26 +136,17 @@ class Board(ft.Container):
                 device_location,
                 device_mc,
                 device_class=device_class)
-        print(result)
         if isinstance(result, list):
             self.board.controls.extend(result)
         else:
             self.board.controls.append(result)
-        print(self.board.controls)
         self.board.update()
 
     def load_devices_bulk(self, device_list):
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
         device_controls = []
         for device in device_list:
             print(device)
-            result = get_device_control(device["class"])(
-                device["location"],
-                device["device_mc"],
-                device["class"],
-                device["properties"],
-                **device["kwargs"]
-                )
+            result = get_device_control(device)(device.location, device)
             if isinstance(result, list):
                 self.board.controls.extend(result)
             else:
@@ -165,8 +156,8 @@ class Board(ft.Container):
     def load_connections_bulk(self, connections):
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        return
         for connection in connections:
-            print(connection["signal"])
             sig_cls = CL.get_class_from_path(connection["signal"])
             CM.load_connection(
                 sig_cls,

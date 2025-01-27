@@ -73,6 +73,7 @@ class ServeManager:
         # Find an unused port
         port = find_unused_port()
         self.port = port
+        self.port = 60000
 
         # Command to start the server
         command = [str(python_executable), "-m", "qureed_project_server.server", "--port", str(port)]
@@ -155,6 +156,16 @@ class ServeManager:
 
         # Use the helper method to run the coroutine
         self.run_in_loop(connect())
+
+    def open_scheme(self, scheme):
+        async def load_scheme():
+            response = await self.client.call(
+                self.client.qm_stub.OpenBoard,
+                MSG.OpenBoardRequest(board=scheme)
+                )
+            return response
+        return self.run_in_loop(load_scheme())
+        
         
 
     def stop(start):

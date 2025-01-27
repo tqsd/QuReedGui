@@ -10,13 +10,9 @@ TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 class Device(BoardComponent):
-    def __init__(self, location:tuple, device_mc, device_class, properties=None, **kwargs):
-        self.device_mc = device_mc
-        self.device_class = device_class
-        self.device_instance = self.device_class(**kwargs)
+    def __init__(self, location:tuple, device):
+        self.device = device
         super().__init__(location, 50, 75)
-        if properties:
-            self.device_instance.properties=properties
         self.bgcolor=TM.get_nested_color("device","bg")
         self.gesture_detection.content.on_enter = self.handle_on_enter
         self.gesture_detection.content.on_exit = self.handle_on_exit
@@ -24,7 +20,7 @@ class Device(BoardComponent):
 
         self.contains = ft.Container(
             top=10,bottom=0,right=10, left=10,
-            content=ft.Image(src_base64=get_device_icon(self.device_class))
+            content=ft.Image(src_base64=get_device_icon(device.icon.abs_path))
             )
         self.content=ft.Stack(
             [
@@ -35,36 +31,33 @@ class Device(BoardComponent):
              self.contains
             ]
             )
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
-        SM.add_device(self.device_instance)
         
     def _compute_ports(self):
         input_ports = [
-            (name, port) for name, port in self.device_class.ports.items() if
-            port.direction=="input"
-            ]
+            (port.label, port) for port in self.device.ports if port.direction == "input"
+        ]
         output_ports = [
-            (name, port) for name, port in self.device_class.ports.items() if
-            port.direction=="output"
-            ]
+            (port.label, port) for port in self.device.ports if port.direction == "output"
+        ]
+        print(input_ports)
+        print(output_ports)
+        print(self.device.ports)
         self.ports_left = Ports(
             height=self.height-10,
             left=0,
             ports=input_ports,
-            device_instance=self.device_instance,
             parent=self
          )
         self.ports_right = Ports(
             height=self.height-10,
             right=0,
             ports=output_ports,
-            device_instance=self.device_instance,
             parent=self
          )
 
     def handle_on_enter(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
-        BM.display_info(f"{self.device_class.gui_name}")
+        BM.display_info(self.device.gui_name)
 
     def handle_on_exit(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
