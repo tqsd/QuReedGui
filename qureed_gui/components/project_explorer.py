@@ -134,10 +134,8 @@ class DraggableDevice(ft.Draggable):
     Wrapped to carry information to the Board on drag
     """
 
-    def __init__(self, d_cls, group: str, content: ft.Control, content_feedback):
-        self.device_class = None
-        #self.device_class = d_cls["class"]
-        #self.device_mc = d_cls["device_mc"]
+    def __init__(self, device, group: str, content: ft.Control, content_feedback):
+        self.device = device
         super().__init__(
             group=group, content=content, content_feedback=content_feedback
         )
@@ -148,17 +146,19 @@ class File(ft.TextButton):
         self.path = path
         self.name = Path(path).name
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
 
 
         if self.name[-3:] == ".py":
-            cls_name = ''.join(w.capitalize() for w in self.name[:-3].split("_"))
-            cls_path = str(Path(self.path)).replace(".py", "").replace("/", ".")
 
-            #self.device_mc = f"{str(Path(self.path)).replace('.py','').replace('/', '.')}.{cls_name}"
-            #self.cls = PM.load_class_from_path(f"{cls_path}.{cls_name}")
+            device = SvM.get_device(PM.path + "/"+ self.path)
+            if device.status == "failure":
+                return
+            device = device.device
+            print(device)
 
             self.content = DraggableDevice(
-                d_cls={}, # {"class": self.cls, "device_mc": self.device_mc},
+                device=device,
                 group="device",
                 content_feedback=ft.Container(
                     width=70,
@@ -168,7 +168,7 @@ class File(ft.TextButton):
                     border_radius=5
                 ),
                 content=ft.Text(
-                    cls_name,
+                    device.gui_name if device.gui_name else device.class_name,
                     size=15,
                     weight=ft.FontWeight.BOLD,
                     color="#9d9ca0",

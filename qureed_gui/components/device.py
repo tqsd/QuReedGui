@@ -6,11 +6,13 @@ from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .ports import Ports
 from theme import ThemeManager
 
+from qureed_project_server import server_pb2
+
 TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 class Device(BoardComponent):
-    def __init__(self, location:tuple, device):
+    def __init__(self, location:tuple, device: server_pb2.Device):
         self.device = device
         super().__init__(location, 50, 75)
         self.bgcolor=TM.get_nested_color("device","bg")
@@ -31,6 +33,12 @@ class Device(BoardComponent):
              self.contains
             ]
             )
+
+    def register_device_with_server(self):
+        if not self.device.uuid:
+            SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            response = SvM.add_device(self.device)
+            self.device.uuid = response.device_uuid
         
     def _compute_ports(self):
         input_ports = [
@@ -39,9 +47,6 @@ class Device(BoardComponent):
         output_ports = [
             (port.label, port) for port in self.device.ports if port.direction == "output"
         ]
-        print(input_ports)
-        print(output_ports)
-        print(self.device.ports)
         self.ports_left = Ports(
             height=self.height-10,
             left=0,

@@ -165,6 +165,46 @@ class ServeManager:
                 )
             return response
         return self.run_in_loop(load_scheme())
+
+    def get_device(self, path):
+        """
+        Get the module class string given a path of the module
+        """
+        async def get_device():
+            response = await self.client.call(
+                self.client.qm_stub.GetDevice,
+                MSG.GetDeviceRequest(module_path=path)
+                )
+            return response
+        return self.run_in_loop(get_device())
+            
+
+    def save_scheme(self, scheme):
+        """
+        TODO
+        """
+
+    def update_device(self, device):
+        """
+        TODO
+        """
+
+    def connect_devices(self, device):
+        """
+        TODO
+        """
+
+    def add_device(self, device):
+        """
+        TODO
+        """
+        async def get_device():
+            response = await self.client.call(
+                self.client.qm_stub.AddDevice,
+                MSG.AddDeviceRequest(device=device)
+                )
+            return response
+        return self.run_in_loop(get_device())
         
         
 

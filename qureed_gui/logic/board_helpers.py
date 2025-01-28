@@ -31,6 +31,7 @@ def get_device_control(device: Device) -> ft.Control:
     return Device
 
 def get_device_icon(icon_abs_path):
+    print(f"Getting Icon:\n{icon_abs_path}")
     with open(icon_abs_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 

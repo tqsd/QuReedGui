@@ -123,7 +123,7 @@ class Board(ft.Container):
         self.location_widget.update_location(*self.location)
 
         
-    def add_device(self, device_class, device_mc, location=None):
+    def add_device(self, device, location=None):
         if not location:
             location = [o+500 for o in self.board_offset]
         else:
@@ -132,10 +132,8 @@ class Board(ft.Container):
             
 
         device_location = location
-        result = get_device_control(device_class)(
-                device_location,
-                device_mc,
-                device_class=device_class)
+        result = get_device_control(device)(location, device)
+        result.register_device_with_server()
         if isinstance(result, list):
             self.board.controls.extend(result)
         else:
@@ -234,8 +232,9 @@ class BoardContainer(ft.Container):
         self.device_creation_modal.update_dialog()
 
     def drag_accept(self, e):
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         c = self.page.get_control(e.src_id)
-        self.board.add_device(c.device_class, c.device_mc, [e.x, e.y])
+        self.board.add_device(c.device, [e.x, e.y])
 
         
 class BoardBar(ft.Container):
