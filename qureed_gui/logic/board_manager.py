@@ -1,4 +1,5 @@
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_project_server import server_pb2
 
 LMH = LogicModuleHandler()
 
@@ -44,7 +45,6 @@ class BoardManager:
             scheme_resp = SvM.open_scheme(scheme) 
             print(type(scheme_resp))
             if scheme_resp.status == "success":
-                print("SUCCES, NOW LOAD THE DEVICES GRAPHICALLY")
                 PM.load_scheme(scheme_resp)
 
 
@@ -54,9 +54,9 @@ class BoardManager:
     def register_board_wrapper(self, board_wrapper):
         self.board_wrapper = board_wrapper
 
-    def add_device(self, device_class, device_mc):
+    def add_device(self, device:server_pb2.Device):
         if self.board:
-            self.board.add_device(device_class, device_mc)
+            self.board.add_device(device)
 
     def display_info(self, info:str):
         if self.board_info:

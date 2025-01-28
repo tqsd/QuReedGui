@@ -195,9 +195,6 @@ class ServeManager:
         """
 
     def add_device(self, device):
-        """
-        TODO
-        """
         async def get_device():
             response = await self.client.call(
                 self.client.qm_stub.AddDevice,
@@ -205,6 +202,16 @@ class ServeManager:
                 )
             return response
         return self.run_in_loop(get_device())
+
+    def get_all_devices(self):
+        async def get_all_devices():
+            response = await self.client.call(
+                self.client.qm_stub.GetDevices,
+                MSG.GetDevicesRequest()
+                )
+            return response
+        return self.run_in_loop(get_all_devices())
+
         
         
 

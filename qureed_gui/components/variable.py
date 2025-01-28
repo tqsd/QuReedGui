@@ -86,3 +86,9 @@ class Variable(BoardComponent):
         self.width = 40 + len(self.contains.content.value)*9
         super().update()
         
+
+    def register_device_with_server(self):
+        if not self.device.uuid:
+            SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            response = SvM.add_device(self.device)
+            self.device.uuid = response.device_uuid
