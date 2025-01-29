@@ -78,14 +78,13 @@ class Device(BoardComponent):
         BM.display_info(f"")
 
     def handle_delete(self, e):
+        
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         for port in [*self.ports_left.content.controls,
                      *self.ports_right.content.controls]:
             CM.disconnect(port)
         BM.remove_device(self)
-        SM.remove_device(self.device_instance)
         
             
         

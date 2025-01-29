@@ -233,6 +233,17 @@ class ServeManager:
             return response
         return self.run_in_loop(get_device())
 
+    def remove_device(self, device_uuid):
+        async def remove_device():
+            response = await self.client.call(
+                self.client.qm_stub.RemoveDevice,
+                MSG.RemoveDeviceRequest(device_uuid=device_uuid)
+                )
+            return response
+        return self.run_in_loop(remove_device())
+
+
+
     def get_all_devices(self):
         async def get_all_devices():
             response = await self.client.call(

@@ -44,7 +44,6 @@ class BoardManager:
             if self.board_bar:
                 self.board_bar.update_scheme_name(self.opened_scheme)
             scheme_resp = SvM.open_scheme(scheme) 
-            print(type(scheme_resp))
             if scheme_resp.status == "success":
                 self.board.load_devices_bulk(scheme_resp.devices)
                 self.board.load_connections_bulk(scheme_resp.connections)
@@ -66,7 +65,6 @@ class BoardManager:
             board=self.opened_scheme,
             devices=devices
             )
-        print(response)
 
     def register_board(self, board):
         self.board=board
@@ -96,6 +94,8 @@ class BoardManager:
             self.board_controls.update()
 
     def remove_device(self, device):
-        self.board.board.controls.remove(device)
-        self.board.update()
-        
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        response = SvM.remove_device(device.device.uuid)
+        if response.status=="success":
+            self.board.board.controls.remove(device)
+            self.board.update()
