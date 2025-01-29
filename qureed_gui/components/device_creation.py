@@ -9,8 +9,6 @@ LMH = LogicModuleHandler()
 class Device(ft.Container):
     def __init__(self, device:server_pb2.Device):
         super().__init__()
-        print(device)
-        print(type(device))
         self.name=device.gui_name if device.gui_name else device.class_name
         self.device=device
         self.device_tags = device.gui_tags
@@ -24,12 +22,14 @@ class Device(ft.Container):
         
 
 class DeviceCreation(ft.AlertDialog):
+    """
+    Modal for inserting devices into the board.
+    """
     def __init__(self):
         super().__init__()
         self.modal=False
         self.title=ft.Text("Select a Device")
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-        print("SHOULD GET THE VENV")
         CL.get_qureed_devices()
 
         self.filtered_devices = []
@@ -60,7 +60,6 @@ class DeviceCreation(ft.AlertDialog):
             ]
 
     def update_dialog(self):
-        print("Updating dialod")
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         all_devices = SvM.get_all_devices()

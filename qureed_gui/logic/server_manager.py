@@ -189,10 +189,19 @@ class ServeManager:
         TODO
         """
 
-    def connect_devices(self, device):
-        """
-        TODO
-        """
+    def connect_devices(self, device_uuid_1, device_port_1, device_uuid_2, device_port_2):
+        async def connect_devices():
+            response = await self.client.call(
+                self.client.qm_stub.ConnectDevices,
+                MSG.ConnectDevicesRequest(
+                    device_uuid_1=device_uuid_1,
+                    device_port_1=device_port_1,
+                    device_uuid_2=device_uuid_2,
+                    device_port_2=device_port_2
+                    )
+                )
+            return response
+        return self.run_in_loop(connect_devices())
 
     def add_device(self, device):
         async def get_device():

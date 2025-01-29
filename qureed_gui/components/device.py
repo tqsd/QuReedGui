@@ -51,13 +51,15 @@ class Device(BoardComponent):
             height=self.height-10,
             left=0,
             ports=input_ports,
-            parent=self
+            parent=self,
+            device=self.device
          )
         self.ports_right = Ports(
             height=self.height-10,
             right=0,
             ports=output_ports,
-            parent=self
+            parent=self,
+            device=self.device,
          )
 
     def handle_on_enter(self, e):

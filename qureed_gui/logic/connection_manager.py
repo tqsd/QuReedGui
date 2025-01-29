@@ -2,14 +2,23 @@
 Manages the connections between the ports
 """
 import traceback
+from dataclasses import dataclass
+
+from qureed_project_server import server_pb2
 
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .simulation_manager import SimulationManager
 from components.connection import Connection
 
+
 LMH = LogicModuleHandler()
 
+
 class ConnectionManager:
+    """
+    Connection Manger, manages the connecting and disconnecting of
+    the devices currently on the board.
+    """
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -38,37 +47,36 @@ class ConnectionManager:
         self.first_port = None
 
     def get_signal_class(self, signal_mc):
-        self.pro
+        pass
 
-    def connect_action(self, e, port_label, device_instance, port):
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
-        connection = None
+    def connect_action(self, port) -> bool:
+        """
+        Connect action saves the parameters of the clicked port,
+        if another port was clicked before than it attempts to
+        connect the ports.
+
+        Parameters:
+        -----------
+        port
+        """
         if self.first_port is None:
-            self.first_port = (device_instance,port_label, port)
+            self.first_port = port
             return True
         else:
-            sig_cls_1 = self.first_port[0].ports[self.first_port[1]].signal_type
-            sig_cls_2 = device_instance.ports[port_label].signal_type
+            SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            response = SvM.connect_devices(
+                device_uuid_1=self.first_port.device.uuid,
+                device_port_1=self.first_port.port_label,
+                device_uuid_2=port.device.uuid,
+                device_port_2=port.port_label
+                )
 
-            # We select the signal which is higher in the inheritance chain
-            try:
-                sig = SM.create_connection(sig_cls, self.first_port[0], self.first_port[1],
-                                     device_instance, port_label)
-                connection=Connection(self.first_port[2], port, self.canvas.canvas, sig)
-                self.first_port[2].set_connection(connection)
-                port.set_connection(connection)
-                connection.draw()
-            except Exception as e:
-                print("ERROR", e)
-                err=traceback.format_exc()
-                SM.display_message("ERROR: " + str(e))
-                print(err)
-                self.clear()
-                return False
-
-            self.register_connection(port, self.first_port[2], connection)
+            first_port = self.first_port
             self.first_port = None
-            return True
+            if response.status == "success":
+                self.load_connection(first_port, port)
+                return True
+            return False
 
     def load_connection(self, port1, port2):
         """

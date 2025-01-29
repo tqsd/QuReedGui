@@ -10,14 +10,14 @@ TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 class Ports(ft.Container):
-    def __init__(self, height, left=None, right=None, ports=None, device_instance=None, parent=None):
+    def __init__(self, height, left=None, right=None, ports=None, device=None, parent=None):
         super().__init__()
         self._parent = parent
         self.top=10
         self.width=10
         self.height=height
         self.ports = ports if ports else []
-        self.device_instance=device_instance
+        self.device=device
 
         if left is not None:
             self.left=left
@@ -34,7 +34,7 @@ class Ports(ft.Container):
                 port=port,
                 ports=self,
                 direction=self.direction,
-                device_instance=self.device_instance,
+                device=self.device,
             ))
         
         self.content = ft.Stack(
@@ -64,7 +64,7 @@ class Ports(ft.Container):
         return (x,y)
 
 class Port(ft.Container):
-    def __init__(self, top, port, ports, direction, device_instance):
+    def __init__(self, top, port, ports, direction, device):
         super().__init__()
         self.top = top
         self.left = 0
@@ -73,7 +73,7 @@ class Port(ft.Container):
         self.ports = ports
         self.port_label = port[0]
         self.port_type = port[1]
-        self.device_instance = device_instance
+        self.device = device
         self.connected = False
         self.connection = None
         self.hover = False
@@ -140,8 +140,7 @@ class Port(ft.Container):
 
     def handle_on_tap(self,e):
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
-        print(f"USING {hex(id(self))}, {self.device_instance}")
-        success = CM.connect_action(e,self.port_label, self.device_instance, self)
+        success = CM.connect_action(self)
         if not self.connected:
             self.connected = success
 
