@@ -1,3 +1,4 @@
+import uuid
 import flet as ft
 
 from .board_component import BoardComponent
@@ -36,9 +37,11 @@ class Device(BoardComponent):
 
     def register_device_with_server(self):
         if not self.device.uuid:
+            uid = uuid.uuid4()
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            self.device.uuid = str(uid)
             response = SvM.add_device(self.device)
-            self.device.uuid = response.device_uuid
+            #self.device.uuid = response.device_uuid
         
     def _compute_ports(self):
         input_ports = [

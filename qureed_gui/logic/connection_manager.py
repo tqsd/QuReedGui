@@ -61,8 +61,12 @@ class ConnectionManager:
         """
         if self.first_port is None:
             self.first_port = port
+            print(self.first_port.device.uuid)
             return True
         else:
+            print("WILL TRY TO CONNECT")
+            print(self.first_port.device.uuid)
+            print(port.device.uuid)
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
             response = SvM.connect_devices(
                 device_uuid_1=self.first_port.device.uuid,
@@ -95,21 +99,47 @@ class ConnectionManager:
             self.all_connections[port2] = []
         self.all_connections[port1].append((port2, connection))
         self.all_connections[port2].append((port1, connection))
+    
+    def deregister_connection(self, connection):
+        try:
+            self.all_connections[connection.port_a].remove((connection.port_b, connection))
+            self.all_connections[connection.port_b].remove((connection.port_a, connection))
+        except Exception as e:
+            print("Error in degeristering connection", e)
         
-    def disconnect(self, port):
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
-        port.set_connection()
+    def disconnect(self, port:"Port"):
+        """
+        Disconnects all signals from the given port
+        """
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+
         if port not in self.all_connections.keys():
             return
         if len(self.all_connections[port]) == 0:
             return
-        
-        connection = self.all_connections[port][0][1]
-        connection.remove()
-        for other_port in self.all_connections[port]:
-            SM.remove_connection(connection.signal)
-            other_port[0].set_connection()
-            self.all_connections[other_port[0]] = []
-        self.all_connections[port] = []
-        
+
+        connections_to_remove = [
+            conn for p,conn in self.all_connections[port]
+            ]
+        print("SHOULD DISCONNECT")
+        print(connections_to_remove)
+
+        for conn in connections_to_remove:
+            print(
+                "\n", conn.port_a.device.uuid,
+                "\n", conn.port_a.port_label,
+                "\n", conn.port_b.device.uuid,
+                "\n", conn.port_b.port_label,
+                )
+            response = SvM.disconnect_devices(
+                conn.port_a.device.uuid,
+                conn.port_a.port_label,
+                conn.port_b.device.uuid,
+                conn.port_b.port_label,
+                )
+            if response.status == "success":
+                conn.remove()
+                conn.port_a.set_connection()
+                conn.port_b.set_connection()
+                self.deregister_connection(conn)
         

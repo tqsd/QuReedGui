@@ -203,6 +203,22 @@ class ServeManager:
             return response
         return self.run_in_loop(connect_devices())
 
+    def disconnect_devices(self, device_uuid_1, device_port_1, device_uuid_2, device_port_2):
+        async def disconnect_devices():
+            response = await self.client.call(
+                self.client.qm_stub.DisconnectDevices,
+                MSG.DisconnectDevicesRequest(
+                    device_uuid_1=device_uuid_1,
+                    device_port_1=device_port_1,
+                    device_uuid_2=device_uuid_2,
+                    device_port_2=device_port_2
+                    )
+                )
+            print("Disconnect Response")
+            print(response)
+            return response
+        return self.run_in_loop(disconnect_devices())
+
     def add_device(self, device):
         async def get_device():
             response = await self.client.call(

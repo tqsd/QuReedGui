@@ -56,7 +56,9 @@ class BoardManager:
 
     def add_device(self, device:server_pb2.Device):
         if self.board:
-            self.board.add_device(device)
+            new_device = server_pb2.Device()
+            new_device.CopyFrom(device)
+            self.board.add_device(new_device)
 
     def display_info(self, info:str):
         if self.board_info:
