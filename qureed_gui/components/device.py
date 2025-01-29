@@ -14,7 +14,8 @@ LMH = LogicModuleHandler()
 
 class Device(BoardComponent):
     def __init__(self, location:tuple, device: server_pb2.Device):
-        self.device = device
+        self.device = server_pb2.Device()
+        self.device.CopyFrom(device)
         super().__init__(location, 50, 75)
         self.bgcolor=TM.get_nested_color("device","bg")
         self.gesture_detection.content.on_enter = self.handle_on_enter
@@ -37,10 +38,13 @@ class Device(BoardComponent):
 
     def register_device_with_server(self):
         if not self.device.uuid:
+            print("YES")
             uid = uuid.uuid4()
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
             self.device.uuid = str(uid)
             response = SvM.add_device(self.device)
+            print("response")
+            print(response)
             #self.device.uuid = response.device_uuid
         
     def _compute_ports(self):

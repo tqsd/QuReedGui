@@ -38,6 +38,7 @@ class BoardManager:
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         if self.opened_scheme != scheme:
+            self.save_scheme()
             self.board.clear_board()
             self.opened_scheme = scheme
             if self.board_bar:
@@ -45,8 +46,27 @@ class BoardManager:
             scheme_resp = SvM.open_scheme(scheme) 
             print(type(scheme_resp))
             if scheme_resp.status == "success":
-                PM.load_scheme(scheme_resp)
+                self.board.load_devices_bulk(scheme_resp.devices)
+                self.board.load_connections_bulk(scheme_resp.connections)
 
+    def save_scheme(self):
+        from components.board_component import BoardComponent
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        devices = []
+        if not self.opened_scheme:
+            return
+        for device in self.device_controls:
+            if not isinstance(device, BoardComponent):
+                continue
+            device_msg = device.device
+            device_msg.location[:] = [device.left, device.top]
+            devices.append(device_msg)
+        
+        response = SvM.save_scheme(
+            board=self.opened_scheme,
+            devices=devices
+            )
+        print(response)
 
     def register_board(self, board):
         self.board=board

@@ -133,6 +133,7 @@ class Board(ft.Container):
 
         device_location = location
         result = get_device_control(device)(location, device)
+        print("SHOULD REGISTER THE DEVICE WITH THE SERVER")
         result.register_device_with_server()
         if isinstance(result, list):
             self.board.controls.extend(result)
@@ -143,7 +144,6 @@ class Board(ft.Container):
     def load_devices_bulk(self, device_list):
         device_controls = []
         for device in device_list:
-            print(device)
             result = get_device_control(device)(device.location, device)
             if isinstance(result, list):
                 self.board.controls.extend(result)
@@ -156,8 +156,6 @@ class Board(ft.Container):
         for connection in connections:
             port1 = self.get_port(connection.device_one_uuid, connection.device_one_port_label)
             port2 = self.get_port(connection.device_two_uuid, connection.device_two_port_label)
-            print(port1)
-            print(type(port1))
             CM.load_connection(port1, port2)
             
 

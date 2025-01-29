@@ -102,6 +102,11 @@ class ProjectManager:
         return deserialize_value(properties)
 
     def save_scheme(self, *args, **kwargs):
+        print("Trying to save scheme")
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+ 
+            
+        return
         from components.device import Device
         from components.variable import Variable
         from logic import SimulationManager, BoardManager

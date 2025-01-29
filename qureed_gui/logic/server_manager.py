@@ -177,12 +177,19 @@ class ServeManager:
                 )
             return response
         return self.run_in_loop(get_device())
-            
 
-    def save_scheme(self, scheme):
-        """
-        TODO
-        """
+    def save_scheme(self, board, devices=[], connections=[]):
+        async def save_scheme():
+            response = await self.client.call(
+                self.client.qm_stub.SaveBoard,
+                MSG.SaveBoardRequest(
+                    board=board,
+                    devices=devices,
+                    connections=connections
+                    )
+                )
+            return response
+        return self.run_in_loop(save_scheme())
 
     def update_device(self, device):
         """
@@ -214,8 +221,6 @@ class ServeManager:
                     device_port_2=device_port_2
                     )
                 )
-            print("Disconnect Response")
-            print(response)
             return response
         return self.run_in_loop(disconnect_devices())
 
