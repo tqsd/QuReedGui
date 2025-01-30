@@ -149,7 +149,7 @@ class File(ft.TextButton):
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
 
 
-        if self.name[-3:] == ".py":
+        if self.name[-3:] == ".py" and "devices" in str(self.path):
 
             device = SvM.get_device(PM.path + "/"+ self.path)
             if device.status == "failure":
@@ -168,7 +168,7 @@ class File(ft.TextButton):
                     border_radius=5
                 ),
                 content=ft.Text(
-                    device.gui_name if device.gui_name else device.class_name,
+                    device.gui_name if device.gui_name else self.name[-3:],
                     size=15,
                     weight=ft.FontWeight.BOLD,
                     color="#9d9ca0",

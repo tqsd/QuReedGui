@@ -46,7 +46,6 @@ class ProjectMenu(ft.SubmenuButton):
             ]
 
     def toggle_menu(self):
-        print("MENU CLICKED")
         self.is_menu_open = not self.is_menu_open
 
     def activate(self):

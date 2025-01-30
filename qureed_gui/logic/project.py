@@ -291,9 +291,8 @@ class ProjectManager:
         if self.project_explorer:
             self.project_explorer.update_project()
 
-        #if self.device_menu:
-        #    self.device_menu.activate()
-        return
+        if self.device_menu:
+            self.device_menu.activate()
 
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)
@@ -443,9 +442,6 @@ class ProjectManager:
         icon_list = os.listdir(icon_path)
         icon_list = [os.path.splitext(icon)[0] for icon in icon_list]
         return icon_list
-
-    def get_all_signals(self):
-        pass
 
     def new_device(self, name, tags, in_ports, out_ports, icon,properties):
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)

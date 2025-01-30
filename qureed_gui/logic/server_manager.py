@@ -243,7 +243,6 @@ class ServeManager:
         return self.run_in_loop(remove_device())
 
 
-
     def get_all_devices(self):
         async def get_all_devices():
             response = await self.client.call(
@@ -253,8 +252,35 @@ class ServeManager:
             return response
         return self.run_in_loop(get_all_devices())
 
-        
-        
+    def get_all_icons(self):
+        async def get_all_icons():
+            response = await self.client.call(
+                self.client.qm_stub.GetIcons,
+                MSG.GetIconRequest()
+                )
+            return response
+        return self.run_in_loop(get_all_icons())
+
+    def get_all_signals(self):
+        print("GETTING ALL SIGNALS")
+        async def get_all_signals():
+            response = await self.client.call(
+                self.client.qm_stub.GetSignals,
+                MSG.GetSignalsRequest()
+                )
+            return response
+        return self.run_in_loop(get_all_signals())
+
+    def generate_new_device(self, device):
+        print("Generating a new device")
+        async def generate_new_device():
+            response = await self.client.call(
+                self.client.qm_stub.GenerateDevices,
+                MSG.GenerateDeviceRequest(device=device)
+                )
+            return response
+        return self.run_in_loop(generate_new_device())
+            
 
     def stop(start):
         pass

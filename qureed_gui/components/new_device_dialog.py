@@ -2,6 +2,8 @@ import re
 import os
 import flet as ft
 
+from qureed_project_server import server_pb2
+
 from logic import get_device_icon_absolute_path
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from theme import ThemeManager
@@ -22,10 +24,11 @@ class NewPort(ft.Row):
         self.controls = [
             ft.TextField(label="Port Name"),
             ft.Dropdown(
-                label="Port Type",
+                label="Signal Type",
                 options=
                 [ft.dropdown.Option(
-                    sig[0]
+                    text=sig.name,
+                    key=sig.module_class
                 ) for sig in self.signals]
             ),
             ft.TextButton(icon=ft.Icons.REMOVE, on_click=self.remove_port)
@@ -71,22 +74,14 @@ class IconSelect(ft.Container):
         super().__init__()
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        response = SvM.get_all_icons()
+        self.icons = response.icons_list
         self.expand=True
         self.height=100
-        self.custom_icons = PM.get_list_of_all_existing_icons()
-        #self.qureed_icons = QI.get_qureed_icons()
-        self.icons = [
-            (f"*{icon}", f"{PM.path}/custom/icons/{icon}.png")
-            for icon in self.custom_icons]
-        icon_list = CL.load_module_from_venv("qureed.assets.icon_list")
-        all_icon_list_attributes = dir(icon_list)
 
-        qureed_icons = [
-            (name, f"{os.path.dirname(os.path.abspath(icon_list.__file__))}/{getattr(icon_list, name)}")
-            for name in all_icon_list_attributes
-            if name.isupper() and not callable(getattr(icon_list, name))
-        ]
         
+        qureed_icons = []
         self.icons.extend(qureed_icons)
         self.image_container = ft.Container(
             width=IMAGE_PREVIEW_SIZE, height=IMAGE_PREVIEW_SIZE, 
@@ -99,7 +94,7 @@ class IconSelect(ft.Container):
                     label="Select Icon",
                     on_change=self.on_select,
                     options=[
-                        ft.dropdown.Option(text=ic[0], key=ic[1])
+                        ft.dropdown.Option(text=ic.name, key=ic.abs_path)
                         for ic in self.icons
                     ]
                 ),
@@ -108,13 +103,16 @@ class IconSelect(ft.Container):
         )
 
     def on_select(self, e):
+        print(e)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.image_container.content = ft.Image(
             src_base64=get_device_icon_absolute_path(e.data)
         )
-        self.selected_icon = e.data.replace(PM.path, "")
-        e.page.update()
+
+        self.selected_icon = next((ic.name for ic in self.icons if ic.abs_path == e.data), None)
         print(self.selected_icon)
+        
+        e.page.update()
         self.image_container.content.update()
 
     def get_icon(self):
@@ -137,7 +135,6 @@ class Properties(ft.Column):
         self.controls.append(new_property)
         self.update()
         e.control.update()
-        print(e)
 
     def get_properties(self):
         properties = {}
@@ -187,9 +184,10 @@ class NewProperty(ft.Row):
 class NewDeviceDialog(ft.AlertDialog):
     def __init__(self, page):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         super().__init__()
         self.modal = True
-        self.existing_icon_list = PM.get_list_of_all_existing_icons()
+        self.existing_icon_list = []
         self.title = ft.Text("Create a new Device")
         self.actions = [
             ft.TextButton("Confirm", on_click=self.on_confirm),
@@ -197,7 +195,9 @@ class NewDeviceDialog(ft.AlertDialog):
             ]
         self.device_name = ft.TextField(label="New device name")
         #signals = QI.get_qureed_signals()
-        signals = []
+        response = SvM.get_all_signals()
+        print(response)
+        signals = response.signals
         self.input_ports = PortCreation("Input Ports", signals)
         self.output_ports = PortCreation("Output Ports", signals)
         self.icon_select = IconSelect()
@@ -250,16 +250,42 @@ class NewDeviceDialog(ft.AlertDialog):
                     return
                     
         icon = self.icon_select.get_icon()
-        print(self.properties.get_properties())
-        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
-        PM.new_device(
-            name=name,
-            tags=self.tags.value,
-            in_ports=in_ports,
-            out_ports=out_ports,
-            icon=icon,
+        SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        new_device_ports = []
+        for p_label, signal in in_ports.items():
+            new_device_ports.append(server_pb2.Port(
+                label=p_label,
+                direction="input",
+                signal_type=signal
+                ))
+        for p_label, signal in out_ports.items():
+            new_device_ports.append(server_pb2.Port(
+                label=p_label,
+                direction="output",
+                signal_type=signal
+                ))
+        new_device_properties = server_pb2.DeviceProperties(
             properties=self.properties.get_properties()
-        )
+            )
+        new_device = server_pb2.Device(
+            icon=server_pb2.GetIconResponse(
+                name=icon),
+            gui_name=name,
+            gui_tags=self.tags.value.replace(" ","").split(","),
+            ports=new_device_ports,
+            device_properties=new_device_properties,
+            )
+        print(new_device)
+        response = SvM.generate_new_device(new_device)
+        if response.status=="failure":
+            snack_bar = ft.SnackBar(content=ft.Text(response.message)) 
+            snack_bar.open = True
+            e.page.overlay.append(snack_bar)
+            e.page.update()
+            return
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.project_explorer.update_project()
+
         KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
         KED.active = True
         self.open = False
