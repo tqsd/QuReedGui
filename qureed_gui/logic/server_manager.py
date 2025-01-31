@@ -262,7 +262,6 @@ class ServeManager:
         return self.run_in_loop(get_all_icons())
 
     def get_all_signals(self):
-        print("GETTING ALL SIGNALS")
         async def get_all_signals():
             response = await self.client.call(
                 self.client.qm_stub.GetSignals,
@@ -272,7 +271,6 @@ class ServeManager:
         return self.run_in_loop(get_all_signals())
 
     def generate_new_device(self, device):
-        print("Generating a new device")
         async def generate_new_device():
             response = await self.client.call(
                 self.client.qm_stub.GenerateDevices,
@@ -280,6 +278,16 @@ class ServeManager:
                 )
             return response
         return self.run_in_loop(generate_new_device())
+
+    def update_device_properties(self, device:MSG.Device):
+        async def update_device_properties():
+            response = await self.client.call(
+                self.client.qm_stub.UpdateDeviceProperties,
+                MSG.UpdateDevicePropertiesRequest(
+                    device=device))
+            return response
+        return self.run_in_loop(update_device_properties())
+        
             
 
     def stop(start):

@@ -4,6 +4,8 @@ A base component, which is the base for the other components
 
 import flet as ft
 
+from qureed_project_server import server_pb2
+
 from .ports import Ports
 from theme import ThemeManager
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
@@ -84,3 +86,23 @@ class BoardComponent(ft.Container):
     def deselect(self):
         self.border = None
         self.update()
+
+
+    def update_properties(self, properties:dict[str, dict]):
+        if hasattr(self, "device"):
+            print("Trying to update the property")
+            print(properties)
+            print(self.device)
+            device_copy = type(self.device)()
+            device_copy.CopyFrom(self.device)
+            properties_msg = server_pb2.DeviceProperties(
+                properties=properties
+                )
+            device_copy.device_properties.CopyFrom(properties_msg)
+            SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            response = SvM.update_device_properties(device_copy)
+            print(response)
+            if response.status == "success":
+                self.device = device_copy
+
+            
