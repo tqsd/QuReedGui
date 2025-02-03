@@ -1,5 +1,5 @@
 import flet as ft
-
+from google.protobuf.json_format import MessageToDict
 from .board_component import BoardComponent
 
 from .ports import Ports
@@ -18,20 +18,26 @@ class Variable(BoardComponent):
         self.gesture_detection.content.on_exit = self.handle_on_exit
         self.gesture_detection.content.on_secondary_tap = self.handle_delete
 
+        self.properties = MessageToDict(device.device_properties.properties)
+        if "value" not in self.properties["value"]:
+            self.properties["value"]["value"] = ""
+
         self.contains = ft.Container(
             bgcolor="#7ead79",
-            top=15,bottom=8,right=10, left=10,
+            top=15,bottom=8,right=10,left=10,
             border_radius=3,
             margin=3,
             padding=3,
             content=ft.Text(
-                str("Properties"),
+                str(self.properties["value"]["value"]),
                 font_family="Courier New",
                 size=12
                 )
             )
 
         self.width = 40 + len(self.contains.content.value)*9
+        if self.width < 70:
+            self.width=70
         self.content=ft.Stack(
             [
              self.header,
@@ -86,11 +92,17 @@ class Variable(BoardComponent):
 
     def update(self):
         self.width = 40 + len(self.contains.content.value)*9
+        if self.width < 70:
+            self.width=70
         super().update()
-        
 
     def register_device_with_server(self):
         if not self.device.uuid:
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
             response = SvM.add_device(self.device)
             self.device.uuid = response.device_uuid
+
+    def update_properties_hook(self):
+        self.properties = MessageToDict(self.device.device_properties.properties)
+        self.contains.content.value=str(self.properties["value"]["value"])
+        self.update()

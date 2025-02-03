@@ -266,8 +266,9 @@ class ProjectManager:
         Opens an existing project and
         start a server in the project and connect to it
         """
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        SM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         self.path = path
         conf = self.load_config()
         venv = str(Path(path) / ".venv")
@@ -279,15 +280,12 @@ class ProjectManager:
             self.install()
         else:
             self.status = ProjectStatus.READY
-
-        
+        SM.deselect_all()
+        BM.close_board()
         SvM.start()
         SvM.connect_venv()
         self.is_opened = True
-        default_scheme = Path(path) / "main.json"
-        if not default_scheme.exists():
-            with open(str(default_scheme), "w") as file:
-                file.write("{}")
+        
         if self.project_explorer:
             self.project_explorer.update_project()
 

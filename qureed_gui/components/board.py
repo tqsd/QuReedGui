@@ -133,7 +133,6 @@ class Board(ft.Container):
 
         device_location = location
         result = get_device_control(device)(location, device)
-        print("SHOULD REGISTER THE DEVICE WITH THE SERVER")
         result.register_device_with_server()
         if isinstance(result, list):
             self.board.controls.extend(result)

@@ -48,4 +48,3 @@ class SelectionManager:
                 print("Component doesn't exist anymore")
         self.selected_components = []
         self.device_settings.hide_settings()
-        

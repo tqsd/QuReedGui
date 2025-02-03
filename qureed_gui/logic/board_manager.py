@@ -33,7 +33,18 @@ class BoardManager:
     def register_board_info(self, board_info):
         self.board_info = board_info
 
+    def close_board(self) -> None:
+        """
+        Clears the board
+        """
+        self.opened_scheme = ""
+        if self.board_bar:
+            self.board_bar.update_scheme_name("No Scheme Opened")
+        if self.board:
+            self.board.clear_board()
+
     def open_scheme(self, scheme):
+        LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER).deselect_all()
         SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
@@ -65,6 +76,8 @@ class BoardManager:
             board=self.opened_scheme,
             devices=devices
             )
+        print("SAVING RESPONSE")
+        print(response)
 
     def register_board(self, board):
         self.board=board

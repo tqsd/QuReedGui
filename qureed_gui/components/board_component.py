@@ -90,9 +90,6 @@ class BoardComponent(ft.Container):
 
     def update_properties(self, properties:dict[str, dict]):
         if hasattr(self, "device"):
-            print("Trying to update the property")
-            print(properties)
-            print(self.device)
             device_copy = type(self.device)()
             device_copy.CopyFrom(self.device)
             properties_msg = server_pb2.DeviceProperties(
@@ -104,5 +101,7 @@ class BoardComponent(ft.Container):
             print(response)
             if response.status == "success":
                 self.device = device_copy
+            if hasattr(self, "update_properties_hook"):
+                self.update_properties_hook()
 
             
