@@ -13,6 +13,18 @@ from qureed_project_server.client import GrpcClient
 
 LMH = LogicModuleHandler()
 
+def is_port_free(port):
+    """
+    Bind temporarily to a port to check if it's free.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind(("", port))
+            return True
+    except OSError:
+        return False
+
 def find_unused_port(start=50000, end=60000):
     """
     Find an unused port in the specified range.
@@ -24,6 +36,11 @@ def find_unused_port(start=50000, end=60000):
     Returns:
     - int: An unused port.
     """
+    for port in range(start, end):
+        if is_port_free(port):
+            print("FOUND OPEN PORT", port)
+            return port  # Return the reserved port
+    raise RuntimeError("No unused port found in the specified range.")
     for port in range(start, end):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:

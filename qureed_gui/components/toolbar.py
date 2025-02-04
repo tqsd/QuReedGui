@@ -116,11 +116,17 @@ class FileMenu(ft.SubmenuButton):
         # Define the on_click handler for the Confirm button
         def on_confirm(click_event):
             project_name = name_prompt.value.strip()
-            if project_name:
+            if not project_name:
+                name_prompt.error_text= "Project Name cannot be empty!"
+                e.page.update()
+                return
+            else:
+                name_prompt.error_text= None
+                e.page.update()
                 PM.new_project(f"{e.path}/{project_name}")
-            dialog.open = False
-            e.page.close(dialog)
-            e.page.update()
+                dialog.open = False
+                e.page.close(dialog)
+                e.page.update()
 
         # Create the AlertDialog with proper handlers
         dialog = ft.AlertDialog(
