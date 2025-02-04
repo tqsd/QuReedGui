@@ -18,7 +18,7 @@ setup(
         "toml",
     ],
     package_data={
-        "qureed": ["templates/*.jinja", "gui/assets/*.png"],
+        "qureed_gui":[" wheels/**/*.whl"],
     },
     include_package_data=True,
     entry_points={

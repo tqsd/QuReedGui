@@ -23,26 +23,19 @@ type_mapping = {
 class Setting(ft.Container):
     def __init__(self, settings, device, parameter, prop):
         super().__init__()
-        print("NEW SETTING")
         self.settings=settings
         self.expand=True
         self.device=device
         self.parameter=parameter
-        print(parameter, prop)
-        print(self.device.device.device_properties.properties[parameter]["type"])
         properties = MessageToDict(self.device.device.device_properties.properties)
         self.properties = properties
-        print(type(properties))
-        print(properties)
         if properties[parameter]["type"] == "bool":
             value = properties[parameter].get("value", False)
-            print(value)
             selected = {}
             if value:
                 selected = {True}
             else:
                 selected = {False}
-            print("Should display the BOOL Button", value, selected)
             btn_style=ft.ButtonStyle(
                 color={
                     ft.ControlState.SELECTED:"black",
@@ -94,10 +87,6 @@ class Setting(ft.Container):
             value_cast = self.properties[self.parameter]["type"]
             value_cast = type_mapping[value_cast]
             value = value_cast(e.data)
-            #self.device_instance.set_property(
-            #    self.parameter,
-            #    value
-            #    )
             self.properties[self.parameter]["value"]=value
             self.device.update_properties(
                 self.properties
@@ -145,8 +134,6 @@ class DeviceSettings(ft.Container):
             )
 
     def display_settings(self, device):
-        print("Settings")
-        print(device.device.device_properties)
         self.device = device
         self.settings = [
             Setting(self, self.device, key, prop) for key,prop in
@@ -172,11 +159,8 @@ class DeviceSettings(ft.Container):
        
     def update_settings(self):
         self.display_settings(self.device)
-        print(f"Updating  SETTINGS")
 
     def update_device(self):
-        print("UPDATING DEVICE")
-        print(self.device.device_instanc.properties)
         self.device.update()
 
     def device_disconnect(self):

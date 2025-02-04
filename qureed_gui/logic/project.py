@@ -13,6 +13,8 @@ import threading
 import toml
 import shutil
 from jinja2 import Environment,FileSystemLoader
+import platform
+from importlib.resources import files
 
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from qureed_project_server import server_pb2
@@ -23,6 +25,21 @@ LMH = LogicModuleHandler()
 class ProjectStatus(IntEnum):
     NOT_READY = 0
     READY = 1
+
+def get_wheels_path():
+    """
+    Determine the correct location of the wheels directory, 
+    considering both development and bundled contexts.
+    """
+    if getattr(sys, 'frozen', False):  # Running in a PyInstaller bundle
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(sys.modules["__main__"].__file__).resolve().parent
+
+    wheels_path = base_path / "wheels" / platform.system().lower()
+    if not wheels_path.exists():
+        raise FileNotFoundError(f"Wheels directory not found: {wheels_path}")
+    return wheels_path        
 
 class ProjectManager:
     _instance = None
@@ -61,6 +78,9 @@ class ProjectManager:
 
     def register_qureed_inspector(self, inspector):
         self.inspector = inspector
+
+    def register_page(self, page):
+        self.page = page
 
     def serialize_properties(self, properties):
         if isinstance(properties, dict):
@@ -104,53 +124,8 @@ class ProjectManager:
     def save_scheme(self, *args, **kwargs):
         print("Trying to save scheme")
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        BM.save_scheme()
  
-            
-        return
-        from components.device import Device
-        from components.variable import Variable
-        from logic import SimulationManager, BoardManager
-        from components.board_component import BoardComponent
-        SM = SimulationManager()
-        BM = BoardManager()
-        if not BM.opened_scheme:
-            return
-        json_descriptor = {
-            "devices": [],
-            "connections": [],
-        }
-        for device in BM.device_controls:
-            if not isinstance(device, BoardComponent):
-                continue
-            dev_class = f"{device.device_class.__module__}.{device.device_class.__name__}"
-            if isinstance(device, (Device,Variable)):
-                properties = self.serialize_properties(device.device_instance.properties)
-                print(device.device_mc)
-
-                dev_descriptor = {
-                    "device":device.device_mc,
-                    "location":(device.left, device.top),
-                    "uuid":device.device_instance.ref.uuid,
-                    "properties":properties
-                    }
-            json_descriptor["devices"].append(dev_descriptor)
-        for s in SM.signals:
-            signal = {
-                "signal":f"{type(s).__module__}.{type(s).__name__}",
-                "conn":[]
-                }
-            for p in s.ports:
-                port={
-                    "device_uuid":p.device.ref.uuid,
-                    "port":p.label
-                    }
-                signal["conn"].append(port)
-            json_descriptor["connections"].append(signal)
-
-        with open(f"{self.path}/{BM.opened_scheme}", "w") as json_file:
-            json.dump(json_descriptor, json_file, indent=4)
-
-        self.display_message(f"Scheme {BM.opened_scheme} saved")
 
     def load_scheme(self, scheme: server_pb2.OpenBoardResponse):
         """
@@ -246,11 +221,11 @@ class ProjectManager:
         self.update_config({"venv":str(Path(self.path)/".venv")})
         def configure_project_pip():
             self.create_venv()
-            (self.path)
-            self.install("photon_weave")
-            self.install("git+ssh://git@github.com/tqsd/qureed.git@master")
+            self.install("qureed_project_server", "qureed")
             venv = str(Path(path) / ".venv")
             self.venv = venv
+            self.open_project(path)
+            print("Configuration Finished")
 
 
         self.is_opened=True
@@ -266,9 +241,12 @@ class ProjectManager:
         Opens an existing project and
         start a server in the project and connect to it
         """
-        SM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
+        print("Opening project")
+        SeM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
+        if self.path is not None:
+            SvM.stop()
         self.path = path
         conf = self.load_config()
         venv = str(Path(path) / ".venv")
@@ -280,8 +258,9 @@ class ProjectManager:
             self.install()
         else:
             self.status = ProjectStatus.READY
-        SM.deselect_all()
+        SeM.deselect_all()
         BM.close_board()
+        print("Attempting to start the server")
         SvM.start()
         SvM.connect_venv()
         self.is_opened = True
@@ -291,6 +270,10 @@ class ProjectManager:
 
         if self.device_menu:
             self.device_menu.activate()
+        
+        if self.page:
+            self.page.title= f"QuReed - {self.path}"
+            self.page.update()
 
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)
@@ -305,17 +288,45 @@ class ProjectManager:
                 self.update_config({"packages": list(packages)})
         python_executable = (
             Path(self.path) / ".venv" / "bin" / "python"
-            if platform.system() != "windows"
+            if platform.system() != "Windows"
             else Path(self.path) / ".venv" / "Scripts" / "python.exe"
         )
+        print(f"Installing on {platform.system()}")
+
+        # Path to the packaged wheels
         try:
-            subprocess.run(
-                [
-                str(python_executable), "-m",
-                "pip", "install", *packages
-                ]
-            )
-            
+            #wheels_path = files("qureed_gui") / "wheels" / platform.system().lower()
+            wheels_path = get_wheels_path()
+            print(wheels_path)
+        except ModuleNotFoundError:
+            wheels_path = None
+
+        wheels_installed = set()
+        print("Installing", wheels_path, " with  ", python_executable)
+        try:
+            # Install wheels first if they match the requested packages
+            if wheels_path.exists():
+                print(f"{wheels_path} exists")
+                for package in packages:
+                    # Find the specific wheel file for the package
+                    print("Installing" ,package)
+                    wheel_files = list(wheels_path.glob(f"{package.replace('-', '_')}*.whl"))
+                    print(wheel_files)
+                    if wheel_files:
+                        self.display_message(f"Installing {package} from {wheel_files[0].name}...")
+                        print(" ".join([str(python_executable), "-m",
+                                "pip", "install", "--find-links", str(wheels_path), str(wheel_files[0])]))
+                        subprocess.run(
+                            [
+                                str(python_executable), "-m",
+                                "pip", "install", "--find-links", str(wheels_path), str(wheel_files[0])
+                            ],
+                            check=True
+                        )
+                        print(f"Installed: {package}")
+                        wheels_installed.add(package)
+            else:
+                print(wheels_path)
         except subprocess.CalledProcessError as e:
             print(f"Command failed with return code {e.returncode}")
             print("Error output:")

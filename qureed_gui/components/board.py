@@ -124,6 +124,8 @@ class Board(ft.Container):
 
         
     def add_device(self, device, location=None):
+        print("ADDING DEVICE ON BOARD")
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         if not location:
             location = [o+500 for o in self.board_offset]
         else:
@@ -133,12 +135,16 @@ class Board(ft.Container):
 
         device_location = location
         result = get_device_control(device)(location, device)
-        result.register_device_with_server()
-        if isinstance(result, list):
-            self.board.controls.extend(result)
-        else:
-            self.board.controls.append(result)
-        self.board.update()
+        print(type(result))
+        success = result.register_device_with_server()
+        print(success)
+        if success:
+            if isinstance(result, list):
+                self.board.controls.extend(result)
+            else:
+                self.board.controls.append(result)
+            self.board.update()
+            PM.display_message("Device Created")
 
     def load_devices_bulk(self, device_list):
         device_controls = []

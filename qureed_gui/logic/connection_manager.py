@@ -1,15 +1,7 @@
 """
 Manages the connections between the ports
 """
-import traceback
-from dataclasses import dataclass
-
-from qureed_project_server import server_pb2
-
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-from .simulation_manager import SimulationManager
-from components.connection import Connection
-
 
 LMH = LogicModuleHandler()
 
@@ -86,6 +78,7 @@ class ConnectionManager:
         """
         Renders the connection, which already exist in the backend
         """
+        from components.connection import Connection
         connection = Connection(port1, port2, self.canvas.canvas)
         port1.set_connection(connection)
         port2.set_connection(connection)

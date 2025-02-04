@@ -8,11 +8,10 @@ TM = ThemeManager()
 # status_bar.py
 import flet as ft
 from theme import ThemeManager
-from logic.project import ProjectManager
-from logic import ProjectManager, SimulationManager
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
-PM = ProjectManager()
-SM = SimulationManager()
+LMH = LogicModuleHandler()
+PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
 TM = ThemeManager()
 
 
@@ -55,7 +54,6 @@ class StatusBar(ft.Container):
 
         # Register this StatusBar with ProjectManager
         PM.register_status_bar(self)
-        SM.register_status_bar(self)
 
     def update_project_status(self, status: int):
         if status == 1:

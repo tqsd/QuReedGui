@@ -1,7 +1,7 @@
 import re
 import flet as ft
 
-from logic import get_device_icon_absolute_path
+from logic import get_device_icon
 from logic import ProjectManager
 from theme import ThemeManager
 
@@ -86,7 +86,7 @@ class IconDialog(ft.AlertDialog):
             self.image_path = e.files[0].path  # Get the first file's path
             self.image_path_text.value = self.image_path  # Update the Text control
             self.image_container.content = ft.Image(
-                src_base64=get_device_icon_absolute_path(self.image_path)
+                src_base64=get_device_icon(self.image_path)
                 )
             e.page.update()
             self.image_container.content.update()

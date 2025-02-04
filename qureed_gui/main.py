@@ -1,7 +1,10 @@
 """
 QuReed Gui entry point
 """
+
 import threading
+import signal
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 import flet as ft
 
@@ -17,7 +20,18 @@ def window_focus(e):
     elif e.type == ft.WindowEventType.FOCUS:
         KED.focused = True
 
+def on_window_event(e):
+    if e.event == "close":
+        SvM = LogicModuleHandler().get_logic(LogicModuleEnum.SERVER_MANAGER)
+        print("Window is closing")
+        SvM.stop()
+
+
+signal.signal(signal.SIGINT, LogicModuleHandler().get_logic(LogicModuleEnum.SERVER_MANAGER).stop)
+
 def main(page: ft.Page):
+    PM = LogicModuleHandler().get_logic(LogicModuleEnum.PROJECT_MANAGER)
+    PM.register_page(page)
     page.title = "QuReed"
     page.padding = 0
     page.spacing = 0

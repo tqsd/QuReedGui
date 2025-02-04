@@ -1,4 +1,5 @@
 import flet as ft
+import uuid
 from google.protobuf.json_format import MessageToDict
 from .board_component import BoardComponent
 
@@ -98,9 +99,15 @@ class Variable(BoardComponent):
 
     def register_device_with_server(self):
         if not self.device.uuid:
+            PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+            uid = uuid.uuid4()
+            self.device.uuid = str(uid)
             response = SvM.add_device(self.device)
-            self.device.uuid = response.device_uuid
+            if response.status == "failure":
+                PM.display_message(f"Device (self.device.module_class) not created: {response.message}")
+                return False
+            return True
 
     def update_properties_hook(self):
         self.properties = MessageToDict(self.device.device_properties.properties)

@@ -4,7 +4,7 @@ import flet as ft
 
 from qureed_project_server import server_pb2
 
-from logic import get_device_icon_absolute_path
+from logic import get_device_icon
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from theme import ThemeManager
 
@@ -106,7 +106,7 @@ class IconSelect(ft.Container):
         print(e)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.image_container.content = ft.Image(
-            src_base64=get_device_icon_absolute_path(e.data)
+            src_base64=get_device_icon(e.data)
         )
 
         self.selected_icon = next((ic.name for ic in self.icons if ic.abs_path == e.data), None)
@@ -240,6 +240,15 @@ class NewDeviceDialog(ft.AlertDialog):
         name = self.device_name.value
         in_ports = self.input_ports.get_ports()
         out_ports = self.output_ports.get_ports()
+
+        # Check if there are duplicate keys
+        if set(in_ports.keys()).intersection(out_ports.keys()):
+            snack_bar = ft.SnackBar(content=ft.Text("Duplicate Port Names are not allowed!")) 
+            snack_bar.open = True
+            e.page.overlay.append(snack_bar)
+            e.page.update()
+            return
+
         for ports in [in_ports, out_ports]:
             for key, value in ports.items():
                 if key=="" or value is None:

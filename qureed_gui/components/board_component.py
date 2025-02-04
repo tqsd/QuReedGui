@@ -5,15 +5,26 @@ A base component, which is the base for the other components
 import flet as ft
 
 from qureed_project_server import server_pb2
-
-from .ports import Ports
 from theme import ThemeManager
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+from .ports import Ports
 
 TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 class BoardComponent(ft.Container):
+    """
+    Board Component is a base component for all connectable devices on the board.
+    Device, Variable and Anchor all inherit from this clarss.
+
+    Attributes:
+        top (float): Position from the top Board boarder (absolute position)
+        left (float): Position from the left Board border (absolute position)
+        height (float): Total height of the Box
+        width (float): Total width of the box
+
+    """
     def __init__(self, location:tuple, height, width):
         super().__init__()
         self.top=location[1]
@@ -26,7 +37,6 @@ class BoardComponent(ft.Container):
         self.contains = ft.Container(
             top=10,bottom=0,right=10, left=10,
             )
-        
 
         self.header = ft.Container(
             top=0, right=0, left=0, height=10,
@@ -87,8 +97,8 @@ class BoardComponent(ft.Container):
         self.border = None
         self.update()
 
-
     def update_properties(self, properties:dict[str, dict]):
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         if hasattr(self, "device"):
             device_copy = type(self.device)()
             device_copy.CopyFrom(self.device)
@@ -98,9 +108,11 @@ class BoardComponent(ft.Container):
             device_copy.device_properties.CopyFrom(properties_msg)
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
             response = SvM.update_device_properties(device_copy)
-            print(response)
             if response.status == "success":
                 self.device = device_copy
+                PM.display_message("Device property updated")
+            else:
+                PM.display_message(f"Device property update failed: {response.message}")
             if hasattr(self, "update_properties_hook"):
                 self.update_properties_hook()
 

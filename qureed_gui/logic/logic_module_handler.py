@@ -5,7 +5,6 @@ class LogicModuleEnum(StrEnum):
     CLASS_LOADER = "class_loader"
     BOARD_MANAGER = "board_manager"
     KEYBOARD_DISPATCHER = "board_dispatcher"
-    SIMULATION_MANAGER = "simulation_manager"
     CONNECTION_MANAGER = "connection_manager"
     SELECTION_MANAGER = "selection_manager"
     SERVER_MANAGER = "server_manager"

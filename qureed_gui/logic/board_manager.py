@@ -44,23 +44,25 @@ class BoardManager:
             self.board.clear_board()
 
     def open_scheme(self, scheme):
+        print(f"OPENING {scheme}, currentli {self.opened_scheme} is opened")
         LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER).deselect_all()
-        SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         if self.opened_scheme != scheme:
             self.save_scheme()
             self.board.clear_board()
-            self.opened_scheme = scheme
-            if self.board_bar:
-                self.board_bar.update_scheme_name(self.opened_scheme)
             scheme_resp = SvM.open_scheme(scheme) 
+            print(scheme_resp)
             if scheme_resp.status == "success":
+                self.opened_scheme = scheme
+                if self.board_bar:
+                    self.board_bar.update_scheme_name(self.opened_scheme)
                 self.board.load_devices_bulk(scheme_resp.devices)
                 self.board.load_connections_bulk(scheme_resp.connections)
 
     def save_scheme(self):
         from components.board_component import BoardComponent
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         devices = []
         if not self.opened_scheme:
@@ -76,16 +78,25 @@ class BoardManager:
             board=self.opened_scheme,
             devices=devices
             )
-        print("SAVING RESPONSE")
-        print(response)
+        if response.status == "success":
+            PM.display_message(f"{self.opened_scheme} succesfully saved")
+        else:
+            PM.display_message(f"Saving of Scheme {self.opened_scheme} failed: {response.message}")
 
     def register_board(self, board):
+        """
+        Register GUI board component, so that we can manage it
+        """
         self.board=board
 
     def register_board_wrapper(self, board_wrapper):
+        """
+        DEPRECATE
+        """
         self.board_wrapper = board_wrapper
 
     def add_device(self, device:server_pb2.Device):
+        print("Attempting to add a device")
         if self.board:
             new_device = server_pb2.Device()
             new_device.CopyFrom(device)
@@ -108,7 +119,11 @@ class BoardManager:
 
     def remove_device(self, device):
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         response = SvM.remove_device(device.device.uuid)
         if response.status=="success":
             self.board.board.controls.remove(device)
             self.board.update()
+            PM.display_message("Device succesfully removed")
+        PM.display_message(f"Device removal failed {response.message}")
+

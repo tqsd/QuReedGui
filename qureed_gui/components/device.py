@@ -36,15 +36,18 @@ class Device(BoardComponent):
             ]
             )
 
-    def register_device_with_server(self):
+    def register_device_with_server(self) -> bool:
         if not self.device.uuid:
-            print("YES")
-            uid = uuid.uuid4()
+            PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+
+            uid = uuid.uuid4()
             self.device.uuid = str(uid)
             response = SvM.add_device(self.device)
-            print("response")
-            print(response)
+            if response.status == "failure":
+                PM.display_message(f"Device (self.device.module_class) not created: {response.message}")
+                return False
+            return True
             #self.device.uuid = response.device_uuid
         
     def _compute_ports(self):
@@ -54,6 +57,8 @@ class Device(BoardComponent):
         output_ports = [
             (port.label, port) for port in self.device.ports if port.direction == "output"
         ]
+        max_ports = max(len(input_ports), len(output_ports))
+        self.height = max(self.height, max_ports * 20)
         self.ports_left = Ports(
             height=self.height-10,
             left=0,

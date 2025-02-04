@@ -19,7 +19,6 @@ class Device(ft.Container):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.add_device(self.device)
         
-        
 
 class DeviceCreation(ft.AlertDialog):
     """
@@ -29,8 +28,6 @@ class DeviceCreation(ft.AlertDialog):
         super().__init__()
         self.modal=False
         self.title=ft.Text("Select a Device")
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-        CL.get_qureed_devices()
 
         self.filtered_devices = []
         self.search_query = ""
@@ -60,10 +57,12 @@ class DeviceCreation(ft.AlertDialog):
             ]
 
     def update_dialog(self):
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        print("GRABBING ALL DEVICES")
         all_devices = SvM.get_all_devices()
-        
+        PM.display_message("Grabbing Existing Devices")
+        print("DEVICES RECEIVED")
 
         self.devices = all_devices.devices
         self.filtered_devices = self.devices
@@ -87,11 +86,14 @@ class DeviceCreation(ft.AlertDialog):
 
         # Perform fuzzy matching on names and tags
         all_device_names = [device.gui_name for device in self.devices]
+        print("---------")
+        print(all_device_names)
         matches = process.extract(query, all_device_names, limit=len(self.devices))
+        print(matches)
         
         # Filter the devices that match the query
         self.filtered_devices = [
-            self.devices[idx] for idx, (name, score, idx) in enumerate(matches) if score > 50
+            self.devices[idx] for idx, (name, score, idx) in enumerate(matches)
         ]
         if len(self.search_query) == 0:
             self.filtered_devices = self.devices

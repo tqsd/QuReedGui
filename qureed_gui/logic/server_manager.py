@@ -35,6 +35,12 @@ def find_unused_port(start=50000, end=60000):
 
 
 class ServeManager:
+    """
+    Server Manager manages the project server and the communication
+    with it.
+
+
+    """
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -61,6 +67,17 @@ class ServeManager:
                 return True
         except OSError:
             return False
+    
+    def poll_server_output(self):
+        if self.server_process:
+            def poll(process):
+                for line in iter(process.stdout.readline, ""):
+                    print(f"[SERVER STDOUT] {line.strip()}")
+                for line in iter(process.stderr.readline, ""):
+                    print(f"[SERVER STDERR] {line.strip()}")
+            
+            output_thread = threading.Thread(target=poll, args=(self.server_process,), daemon=True)
+            output_thread.start()
 
     def start(self):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
@@ -71,17 +88,24 @@ class ServeManager:
             raise FileNotFoundError(f"Python executable not found in virtual environment: {python_executable}")
 
         # Find an unused port
-        port = find_unused_port()
-        self.port = port
-        self.port = 60000
+        self.port = find_unused_port()
+        # self.port = 60000
 
         # Command to start the server
-        command = [str(python_executable), "-m", "qureed_project_server.server", "--port", str(port)]
-        print(" ".join(command))
+        command = [str(python_executable), "-u", "-m", "qureed_project_server.server", "--port", str(self.port)]
+        PM.display_message("Starting server:" + " ".join(command))
+        print(command)
         try:
             # Start the server process
-            self.server_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(f"Server started with PID {self.server_process.pid} on port {self.port}")
+            self.server_process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1)
+            print(f"Server started with PID {self.server_process.pid} on port {self.port},  {self.server_process.poll()}")
+            self.poll_server_output()
+
 
             # Poll for readiness
             for _ in range(20):  # Wait up to 10 seconds
@@ -90,10 +114,13 @@ class ServeManager:
                     break
             else:
                 raise TimeoutError("Server did not become ready in time.")
+            
         except Exception as e:
+            PM.display_message("Failed to start the server: {e}")
             print(f"Failed to start server: {e}")
             return
 
+        PM.display_message(f"Project server started succesfully on port: {self.port}")
         # Define a function to start the asyncio event loop in a new thread
         def grpc_thread_func():
             self.loop = asyncio.new_event_loop()
@@ -141,6 +168,12 @@ class ServeManager:
         future = asyncio.run_coroutine_threadsafe(coro, self.loop)
         return future.result()
             
+
+    def signal_handler(self, sig, frame):
+        print("Interrupt received! Stopping the server...")
+        self.stop()
+        sys.exit(0)
+
     def connect_venv(self):
         """
         Connect to the virtual environment using the gRPC client.
@@ -158,6 +191,8 @@ class ServeManager:
         self.run_in_loop(connect())
 
     def open_scheme(self, scheme):
+        print("Attempting to open a scheme")
+        print(scheme)
         async def load_scheme():
             response = await self.client.call(
                 self.client.qm_stub.OpenBoard,
@@ -242,13 +277,14 @@ class ServeManager:
             return response
         return self.run_in_loop(remove_device())
 
-
     def get_all_devices(self):
+        print("Again getting all of the devices")
         async def get_all_devices():
             response = await self.client.call(
                 self.client.qm_stub.GetDevices,
                 MSG.GetDevicesRequest()
                 )
+            print(" GOT RESPONSE ")
             return response
         return self.run_in_loop(get_all_devices())
 
@@ -287,8 +323,43 @@ class ServeManager:
                     device=device))
             return response
         return self.run_in_loop(update_device_properties())
-        
-            
 
-    def stop(start):
-        pass
+    def stop(self, timeout=5):
+        """
+        Stops the server process gracefully and forces termination if it doesn't stop within the timeout.
+
+        Args:
+            timeout (int): Time in seconds to wait for the server to terminate gracefully.
+        """
+        if self.server_process is None:
+            return
+        async def terminate():
+            response = await self.client.call(
+                self.client.server_stub.Terminate,
+                MSG.TerminateRequest()
+            )
+            return response
+
+        try:
+            # Attempt to terminate the server gracefully
+            response = self.run_in_loop(terminate())
+            print(f"Server termination response: {response}")
+        except Exception as e:
+            print(f"Error during graceful termination request: {e}")
+
+        # Wait for the process to terminate gracefully
+        if self.server_process and self.server_process.poll() is None:  # Check if process is still running
+            print(f"Waiting up to {timeout} seconds for the server to stop...")
+            for _ in range(timeout * 10):  # Check every 100ms
+                if self.server_process.poll() is not None:
+                    print("Server terminated gracefully.")
+                    break
+                time.sleep(0.1)
+            else:
+                # Force termination if the server is still running after timeout
+                print("Server did not terminate in time. Forcing termination...")
+                self.server_process.terminate()
+
+        # Ensure the process is fully terminated
+        self.server_process.wait()
+        print("Server stopped.")

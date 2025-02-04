@@ -1,0 +1,1 @@
+recursive-include qureed_gui/wheels *.whl
