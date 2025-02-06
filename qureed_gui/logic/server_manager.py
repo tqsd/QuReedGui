@@ -7,7 +7,6 @@ import threading
 from pathlib import Path
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 import qureed_project_server.server_pb2 as MSG
-import qureed_project_server.server_pb2_grpc
 from qureed_project_server.client import GrpcClient
 
 
@@ -19,9 +18,8 @@ def is_port_free(port):
     """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(("", port))
-            return True
+            print(f"Testing availability 127.0.0.1:{port}")
+            return s.connect_ex(("127.0.0.1", port)) != 0
     except OSError:
         return False
 
@@ -38,25 +36,51 @@ def find_unused_port(start=50000, end=60000):
     """
     for port in range(start, end):
         if is_port_free(port):
-            print("FOUND OPEN PORT", port)
+            print(f"Availability confirmed 127.0.0.1:{port}")
             return port  # Return the reserved port
-    raise RuntimeError("No unused port found in the specified range.")
-    for port in range(start, end):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind(("", port))  # Bind to the port to check if it's available
-                return port
-            except OSError:
-                continue
     raise RuntimeError("No unused port found in the specified range.")
 
 
 class ServeManager:
     """
-    Server Manager manages the project server and the communication
-    with it.
+    ServerManager (Singleton) manages the project server and the
+    communication with it. The created server is listening on the
+    localhost (127.0.0.1) interface.
 
+    Attributes:
+    -----------
+    server_process (Optional[Subprocess]): Server subprocess after it was
+       created
+    port (int): The port over which server and main process communicate
+    client (GrpcClient): The Grpc Client, which is managing the gRPC protocol
+    loop (asyncion event loop): The asyncio event loop, so that we 
+        can work with asynchronous tasks
+    grpc_thread (Thread): thread running the loop (asyncio)
+    initialized (bool): Initialization flag for the Singleton Pattern
 
+    Methods:
+    --------
+    is_server_ready(): Checks if the server is ready
+    poll_server_output(): Polls and displays stdout and stderr of the server
+        subprocess
+    start(): Starts the server and related processes
+    run_in_loop(): Asyncio utility method
+    interrupt_signal_hook(): Hook to stop the server
+    ... the rest are the communication calls
+    
+    Examples:
+    ---------
+    Example of using this class in the project:
+        >>> from qureed_gui.logic.logic_module_hangler import (
+        >>>     LogicModuleHandler, LogicModuleEnum
+        >>> )
+        >>> SM = LogicModuleHandler().get_logic(
+        >>>     LogicModuleEnum.SERVER_MANAGER
+        >>> )
+    
+    Notes:
+    ------
+    This Singleton instance is initiated once in the `logic/__init__.py`
     """
     _instance = None
 
@@ -75,43 +99,63 @@ class ServeManager:
             LMH.register(LogicModuleEnum.SERVER_MANAGER, self)
             self.initialized=True
 
-    def is_server_ready(self):
+    def is_server_ready(self) -> bool:
         """
         Check if the server is ready to accept connections.
+
+        Returns:
+        bool: True if the server was succesfully created
         """
         try:
             with socket.create_connection(("localhost", self.port), timeout=1):
                 return True
         except OSError:
             return False
-    
+
     def poll_server_output(self):
+        """
+        Method that polls the server ouput and displays it in the
+        stdout of the gui process.
+        """
         if self.server_process:
             def poll(process):
                 for line in iter(process.stdout.readline, ""):
                     print(f"[SERVER STDOUT] {line.strip()}")
                 for line in iter(process.stderr.readline, ""):
                     print(f"[SERVER STDERR] {line.strip()}")
-            
+
             output_thread = threading.Thread(target=poll, args=(self.server_process,), daemon=True)
             output_thread.start()
 
-    def start(self):
+    def start(self) -> None:
+        """
+        Starts the project specific server as a subprocess.
+        Then it starts the thread which polls the server stdout
+        and stderr. After the connection to the server can be
+        established it starts grpc thread.
+
+        """
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
 
         python_executable = Path(PM.venv) / "bin" / "python" if sys.platform != "win32" else Path(PM.venv) / "Scripts" / "python.exe"
+        python_executable = Path(PM.venv) / (
+            "bin/python" if sys.platform != "win32" else "Scripts/python.exe"
+        )
+
 
         if not python_executable.exists():
-            raise FileNotFoundError(f"Python executable not found in virtual environment: {python_executable}")
+            raise FileNotFoundError(
+                f"Python executable not found in virtual environment: {python_executable}"
+                )
 
         # Find an unused port
         self.port = find_unused_port()
         # self.port = 60000
 
         # Command to start the server
-        command = [str(python_executable), "-u", "-m", "qureed_project_server.server", "--port", str(self.port)]
+        command = [str(python_executable), "-u", "-m", 
+                   "qureed_project_server.server", "--port", str(self.port)]
         PM.display_message("Starting server:" + " ".join(command))
-        print(command)
         try:
             # Start the server process
             self.server_process = subprocess.Popen(
@@ -120,7 +164,7 @@ class ServeManager:
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=1)
-            print(f"Server started with PID {self.server_process.pid} on port {self.port},  {self.server_process.poll()}")
+            print(f"Server started with PID {self.server_process.pid} on interface 127.0.0.1:{self.port},  {self.server_process.poll()}")
             self.poll_server_output()
 
 
@@ -134,7 +178,6 @@ class ServeManager:
             
         except Exception as e:
             PM.display_message("Failed to start the server: {e}")
-            print(f"Failed to start server: {e}")
             return
 
         PM.display_message(f"Project server started succesfully on port: {self.port}")
@@ -184,9 +227,12 @@ class ServeManager:
         # Submit the coroutine to the loop and wait for the result
         future = asyncio.run_coroutine_threadsafe(coro, self.loop)
         return future.result()
-            
 
-    def signal_handler(self, sig, frame):
+    def interrupt_signal_hook(self, *_, **__):
+        """
+        Interrupt signal hook, stops the server when 
+        activated. Must be registered.
+        """
         print("Interrupt received! Stopping the server...")
         self.stop()
         sys.exit(0)
@@ -202,14 +248,12 @@ class ServeManager:
                 self.client.venv_stub.Connect,
                 MSG.VenvConnectRequest(venv_path=str(PM.venv))
             )
-            print(f"Connect Venv Response: {response}")
-
-        # Use the helper method to run the coroutine
         self.run_in_loop(connect())
 
     def open_scheme(self, scheme):
-        print("Attempting to open a scheme")
-        print(scheme)
+        """
+        Request to open a scheme, receives the scheme elements.
+        """
         async def load_scheme():
             response = await self.client.call(
                 self.client.qm_stub.OpenBoard,
@@ -218,7 +262,7 @@ class ServeManager:
             return response
         return self.run_in_loop(load_scheme())
 
-    def get_device(self, path):
+    def get_device(self, path: str):
         """
         Get the module class string given a path of the module
         """
@@ -231,6 +275,9 @@ class ServeManager:
         return self.run_in_loop(get_device())
 
     def save_scheme(self, board, devices=[], connections=[]):
+        """
+        Requests the saving of the scheme
+        """
         async def save_scheme():
             response = await self.client.call(
                 self.client.qm_stub.SaveBoard,
@@ -295,13 +342,11 @@ class ServeManager:
         return self.run_in_loop(remove_device())
 
     def get_all_devices(self):
-        print("Again getting all of the devices")
         async def get_all_devices():
             response = await self.client.call(
                 self.client.qm_stub.GetDevices,
                 MSG.GetDevicesRequest()
                 )
-            print(" GOT RESPONSE ")
             return response
         return self.run_in_loop(get_all_devices())
 
