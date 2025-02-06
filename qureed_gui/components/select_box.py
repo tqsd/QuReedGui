@@ -13,7 +13,6 @@ class SelectBox(ft.Container):
         self.border = ft.border.all(1, "black")
 
     def sb_start(self,e):
-        print(e)
         self.start_x=e.local_x
         self.start_y=e.local_y
 
@@ -33,7 +32,7 @@ class SelectBox(ft.Container):
             self.left = self.start_x
         self.update()
 
-    def sb_stop(self,e,stack):
+    def sb_stop(self, e, stack):
         self.visible=False
         self.update()
         top = self.top

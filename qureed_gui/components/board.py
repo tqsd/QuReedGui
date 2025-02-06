@@ -189,7 +189,6 @@ class Board(ft.Container):
                 return p
 
 
-        
 class BoardContainer(ft.Container):
     def __init__(self, page:ft.Page):
         super().__init__()
@@ -260,7 +259,7 @@ class BoardBar(ft.Container):
         )
         BM.register_board_bar(self)
 
-    def update_scheme_name(self, name):
+    def update_scheme_name(self, name: str) -> None:
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         self.current_scheme.value = BM.opened_scheme if BM.opened_scheme else "No Scheme Opened"
         self.update()
@@ -289,6 +288,10 @@ class Location(ft.Container):
         BM.center_board(e)
 
 class Info(ft.Container):
+    """
+    Displays the information about the device/port the
+    user currently hovers
+    """
     def __init__(self):
         super().__init__()
         self.bottom = 25

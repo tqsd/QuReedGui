@@ -53,12 +53,8 @@ class ConnectionManager:
         """
         if self.first_port is None:
             self.first_port = port
-            print(self.first_port.device.uuid)
             return True
         else:
-            print("WILL TRY TO CONNECT")
-            print(self.first_port.device.uuid)
-            print(port.device.uuid)
             SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
             response = SvM.connect_devices(
                 device_uuid_1=self.first_port.device.uuid,
@@ -114,16 +110,8 @@ class ConnectionManager:
         connections_to_remove = [
             conn for p,conn in self.all_connections[port]
             ]
-        print("SHOULD DISCONNECT")
-        print(connections_to_remove)
 
         for conn in connections_to_remove:
-            print(
-                "\n", conn.port_a.device.uuid,
-                "\n", conn.port_a.port_label,
-                "\n", conn.port_b.device.uuid,
-                "\n", conn.port_b.port_label,
-                )
             response = SvM.disconnect_devices(
                 conn.port_a.device.uuid,
                 conn.port_a.port_label,

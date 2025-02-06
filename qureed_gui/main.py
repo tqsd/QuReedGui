@@ -83,7 +83,6 @@ def main(page: ft.Page) -> None:
     # Add container to the page
     page.add(container)
     page.window.on_event=window_focus
-    print(page.window.height)
     threading.Thread(target=start_pynput_listener, args=(KED,), daemon=True).start()
 
 ft.app(main)
