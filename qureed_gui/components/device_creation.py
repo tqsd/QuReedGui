@@ -18,7 +18,7 @@ class Device(ft.Container):
     def add_device(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.add_device(self.device)
-        
+
 
 class DeviceCreation(ft.AlertDialog):
     """
@@ -32,11 +32,11 @@ class DeviceCreation(ft.AlertDialog):
         self.filtered_devices = []
         self.search_query = ""
         self.devices = []
-        
+
         self.qureed_devices=ft.ListView(
             self.filtered_devices
             )
-        
+
         self.content=ft.Column(
             [
              ft.TextField(
@@ -59,10 +59,8 @@ class DeviceCreation(ft.AlertDialog):
     def update_dialog(self):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
-        print("GRABBING ALL DEVICES")
         all_devices = SvM.get_all_devices()
         PM.display_message("Grabbing Existing Devices")
-        print("DEVICES RECEIVED")
 
         self.devices = all_devices.devices
         self.filtered_devices = self.devices

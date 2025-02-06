@@ -35,6 +35,8 @@ class SelectBox(ft.Container):
     def sb_stop(self, e, stack):
         self.visible=False
         self.update()
+        if self.top is None or self.height is None:
+            return
         top = self.top
         bottom = self.top + self.height
         left = self.left

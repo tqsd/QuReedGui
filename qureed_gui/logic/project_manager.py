@@ -1,20 +1,12 @@
-import asyncio
 import sys
-import inspect
-import importlib
 from enum import IntEnum
 import subprocess
-import json
 import os
-import re
 import platform
 from pathlib import Path
 import threading
-import toml
 import shutil
-from jinja2 import Environment,FileSystemLoader
-import platform
-from importlib.resources import files
+import toml
 
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from qureed_project_server import server_pb2
@@ -23,6 +15,9 @@ LMH = LogicModuleHandler()
 
 
 class ProjectStatus(IntEnum):
+    """
+    Project Status Enum, Maybe we can deprecate this
+    """
     NOT_READY = 0
     READY = 1
 
@@ -34,12 +29,12 @@ def get_wheels_path():
     if getattr(sys, 'frozen', False):  # Running in a PyInstaller bundle
         base_path = Path(sys._MEIPASS)
     else:
-        base_path = Path(sys.modules["__main__"].__file__).resolve().parent
+        base_path = Path(sys.modules["__main__"].__file__).resolve().parent.parent
 
     wheels_path = base_path / "wheels" / platform.system().lower()
     if not wheels_path.exists():
         raise FileNotFoundError(f"Wheels directory not found: {wheels_path}")
-    return wheels_path        
+    return wheels_path
 
 class ProjectManager:
     _instance = None
@@ -53,6 +48,7 @@ class ProjectManager:
         if not hasattr(self,"initialized"):
             self.is_opened = False
             self._status=ProjectStatus.READY
+            self.page = None
             self.venv = None
             self.path = None
             self.base_path = None
@@ -121,7 +117,7 @@ class ProjectManager:
 
         return deserialize_value(properties)
 
-    def save_scheme(self, *args, **kwargs):
+    def save_scheme(self, *_, **__):
         print("Trying to save scheme")
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.save_scheme()
@@ -135,19 +131,8 @@ class ProjectManager:
         -----------
             scheme (server_pb2.OpenBoardResponse): The scheme to load
         """
-        devices = []
         self.board.load_devices_bulk(scheme.devices)
         self.board.load_connections_bulk(scheme.connections)
-
-    def get_device_class(self, device_mc):
-        device_mc = device_mc.split("/")
-        class_name = device_mc[-1]
-        device_path = device_mc[:-1]
-        if "custom" in device_mc:
-            return self.load_class_from_file("/".join(device_path))
-        else:
-            return self.inspector.load_device_class(".".join(device_mc))
-        
 
     def load_config(self):
         """Load the existing configuration from a TOML file."""
@@ -194,6 +179,9 @@ class ProjectManager:
             toml.dump(config, file)
 
     def new_project(self, path:str):
+        """
+        New project creation
+        """
         if not path:
             return
         self._status=ProjectStatus.NOT_READY
@@ -422,13 +410,13 @@ class ProjectManager:
         # Define the destination folder
         destination_folder = Path(self.path) / "custom" / "icons"
         destination_folder.mkdir(parents=True, exist_ok=True)  # Create folder if it doesn't exist
-        
+
         # Extract the file extension from the source file
         file_extension = os.path.splitext(icon_path)[1]  # e.g., ".jpg" or ".png"
-        
+
         # Create the destination file path
         destination_file = destination_folder / f"{icon_name}{file_extension}"
-        
+
         try:
             # Copy the file to the destination
             shutil.copy(icon_path, destination_file)
@@ -442,41 +430,12 @@ class ProjectManager:
         except Exception as e:
             return False, f"An unexpected error occurred: {e}"
 
-    def remove_icon(self, icon):
-        pass
-
     def get_list_of_all_existing_icons(self):
+        """
+        DEPRECATED
+        """
+        raise Exception("DEPRECATED")
         icon_path = Path(self.path) / "custom" / "icons"
         icon_list = os.listdir(icon_path)
         icon_list = [os.path.splitext(icon)[0] for icon in icon_list]
         return icon_list
-
-    def new_device(self, name, tags, in_ports, out_ports, icon,properties):
-        templates_module= CL.load_module_from_venv("qureed.templates")
-        template_dir = os.path.dirname(os.path.abspath(templates_module.__file__))
-        print(template_dir)
-        template_path = self.inspector.get_new_device_template_path()
-        env=Environment(loader=FileSystemLoader(template_path))
-        template=env.get_template("device_template.jinja")
-        gui_name = name
-        class_name = name.title().replace(" ", "")
-        file_name = re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower().replace(" ", "")
-        file_name += ".py"
-        tags = [tag.strip().lower() for tag in tags.split(",")]
-        device=template.render(
-            name=name,
-            class_name=class_name,
-            tags=tags,
-            input_ports=in_ports,
-            output_ports=out_ports,
-            gui_icon=icon,
-            properties=properties
-            )
-        # Save the new device
-        file_location = Path(self.path) / "custom" / "devices" / file_name
-        print(device)
-        with open(str(file_location), "w") as f:
-            f.write(device)
-
-        self.display_message(f"Device Created: {file_location}")
-        self.project_explorer.update_project()

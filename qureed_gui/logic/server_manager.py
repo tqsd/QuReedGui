@@ -1,3 +1,7 @@
+"""
+This module impements server management class, which 
+also manages the communication with the server
+"""
 import asyncio
 import time
 import socket

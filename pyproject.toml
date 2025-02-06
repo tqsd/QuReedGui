@@ -1,0 +1,2 @@
+[tool.pylint."BASIC"]
+good-names = ["PM", "SM" , "BM"]

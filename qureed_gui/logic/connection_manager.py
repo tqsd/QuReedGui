@@ -1,7 +1,12 @@
 """
 Manages the connections between the ports
 """
+from __future__ import annotations
+import typing
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+if typing.TYPE_CHECKING:
+    from qureed_gui.components.ports import Port
 
 LMH = LogicModuleHandler()
 
@@ -96,7 +101,7 @@ class ConnectionManager:
         except Exception as e:
             print("Error in degeristering connection", e)
         
-    def disconnect(self, port:"Port"):
+    def disconnect(self, port:Port):
         """
         Disconnects all signals from the given port
         """
@@ -123,4 +128,3 @@ class ConnectionManager:
                 conn.port_a.set_connection()
                 conn.port_b.set_connection()
                 self.deregister_connection(conn)
-        
