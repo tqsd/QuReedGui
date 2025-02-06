@@ -1,13 +1,12 @@
 import flet as ft
 
 from theme import ThemeManager
-from logic.project import ProjectManager
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .icon_dialog import IconDialog
 from .new_device_dialog import NewDeviceDialog
 
-PM = ProjectManager()
 LMH = LogicModuleHandler()
+PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
 TM = ThemeManager()
 
 

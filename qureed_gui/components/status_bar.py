@@ -1,14 +1,9 @@
 import flet as ft
 import threading
 from theme import ThemeManager
-from logic.project import ProjectManager
-
-PM = ProjectManager()
-TM = ThemeManager()
-# status_bar.py
-import flet as ft
-from theme import ThemeManager
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+TM = ThemeManager()
 
 LMH = LogicModuleHandler()
 PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
@@ -75,6 +70,3 @@ class StatusBar(ft.Container):
                 10.0,
                 lambda : self.set_message("", timer=False))
             self.message_timer.start()
-
-        
-

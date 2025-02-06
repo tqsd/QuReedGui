@@ -1,12 +1,14 @@
+"""
+Board helpers
+"""
 import base64
-from typing import Union
-from pathlib import Path
 
 import flet as ft
 
-from qureed_project_server.server_pb2 import Device
+from qureed_project_server.server_pb2 import Device as DeviceMessage
 
-def get_device_control(device: Device) -> ft.Control:
+
+def get_device_control(device: DeviceMessage) -> ft.Control:
     """
     Based on the given device, return the correct device class
 
