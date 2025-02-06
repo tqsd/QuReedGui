@@ -73,7 +73,6 @@ class IconSelect(ft.Container):
     def __init__(self):
         super().__init__()
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         response = SvM.get_all_icons()
         self.icons = response.icons_list

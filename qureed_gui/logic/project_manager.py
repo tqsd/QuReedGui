@@ -259,8 +259,7 @@ class ProjectManager:
         else:
             self.status = ProjectStatus.READY
         SeM.deselect_all()
-        BM.close_board()
-        print("Attempting to start the server")
+        BM.close_scheme()
         SvM.start()
         SvM.connect_venv()
         self.is_opened = True
@@ -453,7 +452,6 @@ class ProjectManager:
         return icon_list
 
     def new_device(self, name, tags, in_ports, out_ports, icon,properties):
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
         templates_module= CL.load_module_from_venv("qureed.templates")
         template_dir = os.path.dirname(os.path.abspath(templates_module.__file__))
         print(template_dir)
@@ -482,46 +480,3 @@ class ProjectManager:
 
         self.display_message(f"Device Created: {file_location}")
         self.project_explorer.update_project()
-
-    def load_class_from_path(self, module_path:str):
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-        return CL.get_class_from_path(module_path)
-
-    def load_class_from_file(self, relative_module_path):
-        CL = LMH.get_logic(LogicModuleEnum.CLASS_LOADER)
-        CL.get_class_from_path(relative_module_path)
-        # Construct the full path to the module file
-        full_path = Path(self.path) / relative_module_path
-
-        # Resolve the path to ensure it's absolute and normalize any irregular path components
-        full_path = full_path.resolve()
-        if not full_path.exists():
-            raise FileNotFoundError(f"No such file: {full_path}")
-
-        # Debug prints for verification
-        if not full_path.is_relative_to(self.path):
-            raise ValueError("Attempted to access a file outside of the base directory")
-     
-        # Convert the full path to a dot-separated module path relative to the base path
-        module_str = (
-            str(full_path.relative_to(self.path)).replace("/", ".").replace("\\", ".")
-        )
-
-        # Only strip the '.py' suffix if it is at the end
-        if module_str.endswith(".py"):
-            module_str = module_str[:-3]
-
-        class_name = str(Path(full_path).name)[:-3]
-        class_name = "".join(x.capitalize() or "_" for x in class_name.split("_"))
-        # Dynamically import the module
-
-        base_path = str(Path(self.path).resolve())
-        if base_path not in sys.path:
-            sys.path.append(base_path)
-
-        module = importlib.import_module(module_str)
-
-        # Inspect the module and return the first found class
-        for name, obj in inspect.getmembers(module, inspect.isclass):
-            if name == class_name and obj.__module__ == module.__name__:
-                return obj
