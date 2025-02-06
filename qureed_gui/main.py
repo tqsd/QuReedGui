@@ -3,30 +3,40 @@ QuReed Gui entry point
 """
 
 import threading
-import signal
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 import flet as ft
 
 from components import Toolbar, StatusBar
 from panels import BoardPanel
 from theme import ThemeManager
-from logic.keyboard import KeyboardEventDispatcher, start_pynput_listener
 
-def window_focus(e):
+from logic.keyboard import KeyboardEventDispatcher, start_pynput_listener
+from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+def window_focus(e) -> None:
+    """
+    Window focus hook
+
+    Parameters:
+    -----------
+    e (ft.Event): Event created at the focusing
+    """
     KED = KeyboardEventDispatcher()
     if e.type == ft.WindowEventType.BLUR:
         KED.focused = False
     elif e.type == ft.WindowEventType.FOCUS:
         KED.focused = True
 
-def on_window_event(e):
-    if e.event == "close":
-        SvM = LogicModuleHandler().get_logic(LogicModuleEnum.SERVER_MANAGER)
-        print("Window is closing")
-        SvM.stop()
+def main(page: ft.Page) -> None:
+    """
+    Main function
 
-def main(page: ft.Page):
+    This function starts the gui process
+
+    Parameters:
+    -----------
+    page (ft.Page): flet Page instance
+    """
     PM = LogicModuleHandler().get_logic(LogicModuleEnum.PROJECT_MANAGER)
     PM.register_page(page)
     page.title = "QuReed"
@@ -69,7 +79,7 @@ def main(page: ft.Page):
         expand=True,
         spacing=0,
     )
-    
+
     # Add container to the page
     page.add(container)
     page.window.on_event=window_focus
