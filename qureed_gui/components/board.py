@@ -68,6 +68,7 @@ class Board(ft.Container):
                 controls=[self.board_wrapper]
                 )]
             )
+
     @property
     def device_controls(self):
         return self.board.controls[1:]

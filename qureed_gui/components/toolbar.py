@@ -56,7 +56,6 @@ class ProjectMenu(ft.SubmenuButton):
         self.controls[0].on_click = None
         self.controls[1].on_click = None
 
-
     def add_icon(self, e):
         ic = IconDialog(e.page)
         e.page.overlay.append(ic)
@@ -95,7 +94,7 @@ class FileMenu(ft.SubmenuButton):
             ]
         )
 
-    def pick_dir(self, callback, e: ft.ControlEvent):
+    def pick_dir(self, callback: callable, e: ft.ControlEvent):
         fp = ft.FilePicker(on_result=callback)
 
         e.page.overlay.append(fp)
@@ -131,12 +130,14 @@ class FileMenu(ft.SubmenuButton):
         # Create the AlertDialog with proper handlers
         dialog = ft.AlertDialog(
             title=ft.Text("New Project Name"),
-            content=name_prompt,
+            content=ft.Container(
+                content=name_prompt,
+                width=900),
             actions=[
                 ft.TextButton("Confirm", on_click=on_confirm),
                 ft.TextButton("Cancel", on_click=close_dialog)
             ],
-            modal=True  # Makes the dialog modal (prevents interaction with other UI elements)
+            modal=True,
         )
 
         # Add the dialog to the page's overlay

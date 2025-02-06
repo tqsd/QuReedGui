@@ -13,6 +13,7 @@ class SelectBox(ft.Container):
         self.border = ft.border.all(1, "black")
 
     def sb_start(self,e):
+        print(e)
         self.start_x=e.local_x
         self.start_y=e.local_y
 

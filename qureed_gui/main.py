@@ -26,9 +26,6 @@ def on_window_event(e):
         print("Window is closing")
         SvM.stop()
 
-
-signal.signal(signal.SIGINT, LogicModuleHandler().get_logic(LogicModuleEnum.SERVER_MANAGER).stop)
-
 def main(page: ft.Page):
     PM = LogicModuleHandler().get_logic(LogicModuleEnum.PROJECT_MANAGER)
     PM.register_page(page)

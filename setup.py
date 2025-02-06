@@ -14,7 +14,7 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "flet==0.25.2",
+        "flet==0.26",
         "toml",
     ],
     package_data={
