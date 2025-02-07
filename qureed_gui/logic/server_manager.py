@@ -429,3 +429,14 @@ class ServeManager:
         # Ensure the process is fully terminated
         self.server_process.wait()
         print("Server stopped.")
+
+    def start_simulation(self, scheme:str):
+        async def start_simulation():
+            response = await self.client.call(
+                self.client.simulation_stub.StartSimulation,
+                MSG.StartSimulationRequest(
+                    scheme_path=scheme
+                )
+            )
+            return response
+        return self.run_in_loop(start_simulation())

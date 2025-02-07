@@ -67,10 +67,14 @@ class ProjectMenu(ft.SubmenuButton):
         ndd.open = True
         e.page.update()
 
-        
-    
 
 class FileMenu(ft.SubmenuButton):
+    """
+    File Menu displays and implements the following options:
+    - New Project
+    - Open Project
+    - Save Scheme
+    """
     def __init__(self):
         super().__init__(
         content=ft.Text(
@@ -103,6 +107,7 @@ class FileMenu(ft.SubmenuButton):
     def new_project(self, e):
         # Create a TextField for user input
         if not e.path:
+            PM.display_message("New Project Creation Canceled!")
             return
         name_prompt = ft.TextField(label=f"{e.path}/")
 
@@ -149,9 +154,11 @@ class FileMenu(ft.SubmenuButton):
         e.page.update()
 
     def open_project(self, e):
+        if not e.path:
+            PM.display_message("Project Opening Canceled!")
+            return
         PM.open_project(e.path)
         e.page.update()
 
     def save_scheme(self, e):
-        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         PM.save_scheme()

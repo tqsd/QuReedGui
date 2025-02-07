@@ -106,7 +106,7 @@ class Board(ft.Container):
         self.location = location
 
     def on_click_handle(self, e):
-        print("CLICK")
+        pass
 
     def did_mount(self):
         row = self.content# This is the Row
@@ -125,7 +125,6 @@ class Board(ft.Container):
 
         
     def add_device(self, device, location=None):
-        print("ADDING DEVICE ON BOARD")
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         if not location:
             location = [o+500 for o in self.board_offset]
@@ -136,9 +135,7 @@ class Board(ft.Container):
 
         device_location = location
         result = get_device_control(device)(location, device)
-        print(type(result))
         success = result.register_device_with_server()
-        print(success)
         if success:
             if isinstance(result, list):
                 self.board.controls.extend(result)

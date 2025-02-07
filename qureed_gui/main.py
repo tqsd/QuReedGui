@@ -7,7 +7,7 @@ import threading
 import flet as ft
 
 from components import Toolbar, StatusBar
-from panels import BoardPanel
+from panels import BoardPanel, SimulationPanel
 from theme import ThemeManager
 
 from logic.keyboard import KeyboardEventDispatcher, start_pynput_listener
@@ -52,7 +52,7 @@ def main(page: ft.Page) -> None:
         bgcolor=TM.get_nested_color("bg","base"),
         expand=True,
         content=ft.Tabs(
-            selected_index=1,
+            selected_index=0,
             animation_duration=100,
             indicator_color="white",
             divider_color="black",
@@ -66,6 +66,14 @@ def main(page: ft.Page) -> None:
                     ),
                     content=BoardPanel(page)
                 ),
+                ft.Tab(
+                    tab_content=ft.Container(
+                        height=20,
+                        alignment=ft.alignment.center,
+                        content=ft.Text("Simulation", size=15, color="white")
+                    ),
+                    content=SimulationPanel(page)
+                )
             ],
         )
     )

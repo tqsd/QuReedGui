@@ -1,6 +1,7 @@
 import sys
 from enum import IntEnum
 import subprocess
+import functools
 import os
 import platform
 from pathlib import Path
@@ -35,6 +36,33 @@ def get_wheels_path():
     if not wheels_path.exists():
         raise FileNotFoundError(f"Wheels directory not found: {wheels_path}")
     return wheels_path
+
+def validate_project_path(method):
+    """
+    Validates and tries to reroute the project manager method
+    to the correct project path
+
+    Parameters:
+    -----------
+    method (callable): the method called
+    """
+    @functools.wraps(method)
+    def wrapper(self, path, *args, **kwargs):
+        """
+        Check if the path includes config file, if not it is not recognized as a project
+        If it fails it also checks the parent directory
+        """
+
+        # check if the given path contains config.toml
+        if os.path.isfile(os.path.join(path, "config.toml")):
+            return method(self, path, *args, **kwargs)
+
+        parent_path = os.path.dirname(path)
+        if os.path.isfile(os.path.join(parent_path, "config.toml")):
+            return method(self, parent_path, *args, **kwargs)
+
+        return method(self, "", *args, **kwargs)
+    return wrapper
 
 class ProjectManager:
     _instance = None
@@ -118,7 +146,6 @@ class ProjectManager:
         return deserialize_value(properties)
 
     def save_scheme(self, *_, **__):
-        print("Trying to save scheme")
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         BM.save_scheme()
  
@@ -213,7 +240,6 @@ class ProjectManager:
             venv = str(Path(path) / ".venv")
             self.venv = venv
             self.open_project(path)
-            print("Configuration Finished")
 
 
         self.is_opened=True
@@ -224,12 +250,15 @@ class ProjectManager:
         if self.project_explorer:
             self.project_explorer.update_project()
         
+    @validate_project_path
     def open_project(self, path:str):
         """
         Opens an existing project and
         start a server in the project and connect to it
         """
-        print("Opening project")
+        if path=="":
+            self.display_message("Invalid project path")
+            return
         SeM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
@@ -261,6 +290,23 @@ class ProjectManager:
         if self.page:
             self.page.title= f"QuReed - {self.path}"
             self.page.update()
+
+        self.collect_schemes()
+
+    def collect_schemes(self):
+        """
+        Collect the schemes which are executable
+        """
+        # self.path
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        scheme_files = list(Path(self.path).glob("*.json"))
+        schemes_dir = Path(self.path)/"schemes"
+        if schemes_dir.exists():
+            scheme_files += list(schemes_dir.glob("*.json"))
+        for scheme in scheme_files:
+            print(f"Found JSON: {scheme}")
+        SiM.update_executable_schemes(scheme_files)
+
 
     def install(self,*packages:str):
         self.display_message(f"Installing packages {packages}", timer=False)

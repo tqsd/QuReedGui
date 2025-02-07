@@ -1,0 +1,85 @@
+from pathlib import Path
+
+from logic.logic_module_handler import (
+    LogicModuleEnum, LogicModuleHandler
+)
+
+import flet as ft
+
+LMH = LogicModuleHandler()
+
+class SimulationBar(ft.Container):
+    def __init__(self):
+        super().__init__()
+        self.height = 70
+        self.top = 10
+        self.right = 0
+        self.bgcolor = "black"
+        self.left = 0
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        SiM.register_simulation_tab(self)
+        #SiM = LogicModuleHandler().get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        #SiM.register_simulation_tab(self)
+        self.dropdown = ft.Dropdown(
+                label="Scheme",
+                hint_text="Which scheme will get executed",
+                width=300,
+                #height=40,
+                color="white",
+                border_color="gray",
+                text_size=15,
+                label_style=ft.TextStyle(color="white"),
+                padding=ft.Padding(0,0,0,0),
+                options=[],
+                on_change=self.on_scheme_select
+            )
+        self.content = ft.Row(
+            [
+                ft.IconButton(
+                    icon=ft.icons.PLAY_ARROW,
+                    icon_color="white",
+                    tooltip="Start the Simulation",
+                    on_click=self.start_simulation,
+                    icon_size=20
+                ),
+                self.dropdown,
+            ],
+            alignment=ft.MainAxisAlignment.START
+        )
+    
+    def start_simulation(self, e):
+        print("SHOULD START THE SIMULATION")
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        SiM.simulation_start()
+
+    def update_executable_schemes(self, schemes):
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        SiM.select_scheme()
+        base_path = Path(PM.path)
+        self.dropdown.options.clear()
+        default_scheme = None
+        for scheme in schemes:
+            scheme_path =Path(scheme).resolve()
+
+            scheme_name = scheme_path.relative_to(base_path)
+            self.dropdown.options.append(
+                ft.dropdown.Option(
+                    text=scheme_name,
+                    key=scheme
+                )
+            )
+            if (scheme_path.parent == base_path and
+                scheme_path.name == "main.json"):
+                default_scheme = scheme
+        if default_scheme:
+            self.dropdown.value = default_scheme
+            SiM.select_scheme(default_scheme)
+
+        self.dropdown.update()
+
+    def on_scheme_select(self, e):
+        print("SELECTED")
+        print(e)
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+        SiM.select_scheme(e.data)

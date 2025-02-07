@@ -84,11 +84,7 @@ class DeviceCreation(ft.AlertDialog):
 
         # Perform fuzzy matching on names and tags
         all_device_names = [device.gui_name for device in self.devices]
-        print("---------")
-        print(all_device_names)
         matches = process.extract(query, all_device_names, limit=len(self.devices))
-        print(matches)
-        
         # Filter the devices that match the query
         self.filtered_devices = [
             self.devices[idx] for idx, (name, score, idx) in enumerate(matches)

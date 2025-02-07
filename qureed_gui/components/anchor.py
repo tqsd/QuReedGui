@@ -131,7 +131,6 @@ class AnchorComponent(BoardComponent):
         BM.display_info(f"")
 
     def handle_delete(self, e, propagate=True):
-        print("Deleting Anchor")
         CM = LMH.get_logic(LogicModuleEnum.CONNECTION_MANAGER)
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         SM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)

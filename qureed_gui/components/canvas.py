@@ -20,7 +20,6 @@ class Canvas(ft.Container):
         self.update()
 
     def create_connection(self, loc1, loc2, adjust=True):
-        print(loc1, loc2)
         if adjust:
             factor = 5000
         else:

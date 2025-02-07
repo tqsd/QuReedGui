@@ -102,14 +102,12 @@ class IconSelect(ft.Container):
         )
 
     def on_select(self, e):
-        print(e)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.image_container.content = ft.Image(
             src_base64=get_device_icon(e.data)
         )
 
         self.selected_icon = next((ic.name for ic in self.icons if ic.abs_path == e.data), None)
-        print(self.selected_icon)
         
         e.page.update()
         self.image_container.content.update()
@@ -195,7 +193,6 @@ class NewDeviceDialog(ft.AlertDialog):
         self.device_name = ft.TextField(label="New device name")
         #signals = QI.get_qureed_signals()
         response = SvM.get_all_signals()
-        print(response)
         signals = response.signals
         self.input_ports = PortCreation("Input Ports", signals)
         self.output_ports = PortCreation("Output Ports", signals)
@@ -283,7 +280,6 @@ class NewDeviceDialog(ft.AlertDialog):
             ports=new_device_ports,
             device_properties=new_device_properties,
             )
-        print(new_device)
         response = SvM.generate_new_device(new_device)
         if response.status=="failure":
             snack_bar = ft.SnackBar(content=ft.Text(response.message)) 

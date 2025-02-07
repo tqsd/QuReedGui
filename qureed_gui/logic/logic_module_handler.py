@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class LogicModuleEnum(StrEnum):
     """
     LogicModuleEnum enums all of the 
@@ -10,6 +11,7 @@ class LogicModuleEnum(StrEnum):
     KEYBOARD_DISPATCHER = "board_dispatcher"
     CONNECTION_MANAGER = "connection_manager"
     SELECTION_MANAGER = "selection_manager"
+    SIMULATION_MANAGER = "simulation_manager"
     SERVER_MANAGER = "server_manager"
 
 class LogicModuleHandler:

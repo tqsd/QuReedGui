@@ -41,7 +41,6 @@ class Ports(ft.Container):
             controls=controls)
 
     def register_device_instance(self, device_instance):
-        print("Registering device instance: Ports,", device_instance)
         self.device_instance = device_instance
         for port in self.content.controls:
             port.register_device_instance(device_instance)
@@ -106,7 +105,6 @@ class Port(ft.Container):
 
     def register_device_instance(self, device_instance):
         self.device_instance = device_instance
-        print(f"Registering {hex(id(self))}, {device_instance}")
 
     def choose_bg_color(self):
         if self.hover:
