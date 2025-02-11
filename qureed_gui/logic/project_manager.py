@@ -236,6 +236,7 @@ class ProjectManager:
         self.update_config({"venv":str(Path(self.path)/".venv")})
         def configure_project_pip():
             self.create_venv()
+            self.install("numpy")
             self.install("qureed_project_server", "qureed")
             venv = str(Path(path) / ".venv")
             self.venv = venv

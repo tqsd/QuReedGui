@@ -2,6 +2,8 @@
 This module impements server management class, which 
 also manages the communication with the server
 """
+import inspect
+import uuid
 import asyncio
 import time
 import socket
@@ -167,7 +169,9 @@ class ServeManager:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1)
+                bufsize=1,
+                encoding="utf-8"
+                )
             print(f"Server started with PID {self.server_process.pid} on interface 127.0.0.1:{self.port},  {self.server_process.poll()}")
             self.poll_server_output()
 
@@ -430,13 +434,32 @@ class ServeManager:
         self.server_process.wait()
         print("Server stopped.")
 
-    def start_simulation(self, scheme:str):
+    def start_simulation(self, scheme:str, simulation_id):
         async def start_simulation():
             response = await self.client.call(
                 self.client.simulation_stub.StartSimulation,
                 MSG.StartSimulationRequest(
-                    scheme_path=scheme
+                    scheme_path=str(scheme),
+                    simulation_id=str(simulation_id)
                 )
             )
             return response
+
+        if self.loop is not None:
+            self.loop.call_soon_threadsafe(
+                asyncio.create_task, 
+                self.subscribe_to_logs(simulation_id=simulation_id)
+            )
+        
         return self.run_in_loop(start_simulation())
+
+    async def subscribe_to_logs(self, simulation_id):
+        request = MSG.SimulationLogStreamRequest()
+        print("SUBSCRIBING TO THE LOGS")
+        try:
+            async for response in self.client.simulation_stub.SimulationLogStream(request):
+                print("ANYTHING?")
+                print("Received log", response.log)
+        except Exception as e:
+            print(e)
+        print("OVER")

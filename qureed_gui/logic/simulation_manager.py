@@ -1,4 +1,4 @@
-
+import uuid 
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 LMH = LogicModuleHandler()
@@ -31,7 +31,7 @@ class SimulationManager:
 
     def simulation_start(self):
         SeM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        self.simulation_id = uuid.uuid4()
         if self.scheme:
-            response = SeM.start_simulation(self.scheme)
+            response = SeM.start_simulation(self.scheme, self.simulation_id)
             print(response)
-        
