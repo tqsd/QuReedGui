@@ -12,7 +12,7 @@ class SimulationBar(ft.Container):
     def __init__(self):
         super().__init__()
         self.height = 70
-        self.top = 10
+        self.top = 0
         self.right = 0
         self.bgcolor = "black"
         self.left = 0
@@ -26,6 +26,7 @@ class SimulationBar(ft.Container):
                 width=300,
                 #height=40,
                 color="white",
+                bgcolor="#594c4c",
                 border_color="gray",
                 text_size=15,
                 label_style=ft.TextStyle(color="white"),
@@ -43,12 +44,43 @@ class SimulationBar(ft.Container):
                     icon_size=20
                 ),
                 self.dropdown,
+                ft.TextField(
+                    label="simulation time (s)",
+                    color="white",
+                    border_color="grey",
+                    label_style=ft.TextStyle(color="white"),
+                    on_change=self.update_simulation_time
+                )
             ],
             alignment=ft.MainAxisAlignment.START
         )
-    
+
+    def update_simulation_time(self, e):
+        text = e.control.value.strip()
+
+        # Allow empty field (no error)
+        if text == "":
+            e.control.error_text = None
+            e.control.update()
+            return
+
+        # Allow intermediate values like "-" or "." temporarily
+        if text in ["-", "."]:
+            e.control.error_text = None
+            e.control.update()
+            return
+
+        try:
+            float(text)  # ✅ Validate as float
+            e.control.error_text = None  # Clear error if valid
+            SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+            SiM.set_simulation_time(float(text))
+        except ValueError:
+            e.control.error_text = "Invalid number format"  # Show error message
+
+        e.control.update()  # Update UI
+
     def start_simulation(self, e):
-        print("SHOULD START THE SIMULATION")
         SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         SiM.simulation_start()
 

@@ -1,4 +1,7 @@
 import flet as ft
+import sys
+import subprocess
+import os
 from pathlib import Path
 
 from theme import ThemeManager
@@ -22,12 +25,23 @@ class ProjectExplorer(ft.Container):
         self.width = 250
         self.bgcolor = TM.get_nested_color("project_explorer", "bg")
         self.color = TM.get_nested_color("project_explorer", "color")
-        self.file_list = ft.Column(expand=1, spacing=0, auto_scroll=True)
+        self.file_list = ft.Column(
+            expand=1, 
+            spacing=0, 
+            auto_scroll=True, 
+            scroll=ft.ScrollMode.ADAPTIVE
+        )
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.files = PM.get_file_tree()
         self.content = ft.Stack(
             [
-             ft.Container(top=10, right=5, bottom=0, left=5, content=self.file_list),
+                ft.Container(bottom=3, left=5,content=ft.IconButton(
+                    icon=ft.icons.REFRESH,
+                    icon_color="white",
+                    icon_size=16,
+                    on_click=self.update_project
+                )),
+             ft.Container(top=10, right=5, bottom=50, left=5, content=self.file_list),
              ft.Container(
                  top=0, right=0, bottom=0,
                  width=5,
@@ -39,12 +53,13 @@ class ProjectExplorer(ft.Container):
             )
         PM.register_project_explorer(self)
 
-    def update_project(self):
+    def update_project(self,e=None):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         self.files = PM.get_file_tree()
         def recursive_tree_update(files):
             elements = []
             for f in files:
+                print(f)
                 if isinstance(f, str):
                     elements.append(File(path=f))
                 elif isinstance(f, dict):
@@ -53,7 +68,10 @@ class ProjectExplorer(ft.Container):
                         elements.append(Directory(path=dir_path, elements=dir_elements))
             return elements
 
-        self.file_list.controls = recursive_tree_update(self.files)
+        try:
+            self.file_list.controls = recursive_tree_update(self.files)
+        except Exception as e:
+            print(e)
         self.file_list.update()
         self.page.update()
 
@@ -147,6 +165,8 @@ class File(ft.TextButton):
         self.name = Path(path).name
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        
+        self.absolute_path = Path(PM.path) / Path(self.path)
 
 
         if self.name[-3:] == ".py" and "devices" in str(self.path):
@@ -155,8 +175,6 @@ class File(ft.TextButton):
             if device.status == "failure":
                 return
             device = device.device
-            print(device)
-
             self.content = DraggableDevice(
                 device=device,
                 group="device",
@@ -184,3 +202,29 @@ class File(ft.TextButton):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         if self.name[-5:] == ".json":
             BM.open_scheme(self.path)
+        elif self.name[-3:] == ".py":
+            self.open_with_default_editor()
+        elif self.name[-4:] in [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".svg"]:
+            self.open_with_default_viewer()
+
+    def open_with_default_editor(self):
+        try:
+            if sys.platform == "win32":
+                os.startfile(self.absolute_path)
+            elif sys.platform == "darwin":
+                subprosess.run(["open", str(self.absolute_path)])
+            else:
+                subprocess.run(["xgd-open", str(self.absolute_path)])
+        except Exception as e:
+            print(f"Failed to open {self.absolute_path}:{e}")
+
+    def open_with_default_viewer(self):
+        try:
+            if sys.platform == "win32":
+                os.startfile(self.absolute_path)
+            elif sys.platform == "darwin":
+                subprosess.run(["open", str(self.absolute_path)])
+            else:
+                subprocess.run(["xgd-open", str(self.absolute_path)])
+        except Exception as e:
+            print(f"Failed to open {self.absolute_path}:{e}")

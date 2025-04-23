@@ -10,6 +10,7 @@ import socket
 import subprocess
 import sys
 import threading
+import traceback
 from pathlib import Path
 from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 import qureed_project_server.server_pb2 as MSG
@@ -434,32 +435,44 @@ class ServeManager:
         self.server_process.wait()
         print("Server stopped.")
 
-    def start_simulation(self, scheme:str, simulation_id):
+    def start_simulation(self, scheme:str, simulation_id, simulation_time:float):
+        print(MSG.StartSimulationRequest(
+                    scheme_path=str(scheme),
+                    simulation_id=str(simulation_id),
+                    simulation_time=simulation_time
+                ))
         async def start_simulation():
             response = await self.client.call(
                 self.client.simulation_stub.StartSimulation,
                 MSG.StartSimulationRequest(
                     scheme_path=str(scheme),
-                    simulation_id=str(simulation_id)
+                    simulation_id=str(simulation_id),
+                    simulation_time=simulation_time
                 )
             )
             return response
 
-        if self.loop is not None:
+        
+        response = self.run_in_loop(start_simulation())
+        if response.status == "failure":
+            print(f"Simulation Failed to start:{response.message}")
+        elif self.loop is not None:
             self.loop.call_soon_threadsafe(
                 asyncio.create_task, 
                 self.subscribe_to_logs(simulation_id=simulation_id)
             )
-        
-        return self.run_in_loop(start_simulation())
 
     async def subscribe_to_logs(self, simulation_id):
         request = MSG.SimulationLogStreamRequest()
-        print("SUBSCRIBING TO THE LOGS")
         try:
-            async for response in self.client.simulation_stub.SimulationLogStream(request):
-                print("ANYTHING?")
-                print("Received log", response.log)
+            stream = self.client.simulation_stub.SimulationLogStream(request)
+            SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
+            async for response in stream:
+                SiM.handle_logs(response)
+                if response.log.end:
+                    SiM.handle_simulation_end()
+
         except Exception as e:
+            print("ASYNCIO ERROR")
             print(e)
-        print("OVER")
+            traceback.print_exc()

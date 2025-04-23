@@ -238,6 +238,8 @@ class ProjectManager:
             self.create_venv()
             self.install("numpy")
             self.install("qureed_project_server", "qureed")
+            self.install("qutip")
+            self.install("matplotlib")
             venv = str(Path(path) / ".venv")
             self.venv = venv
             self.open_project(path)
@@ -262,6 +264,7 @@ class ProjectManager:
             return
         SeM = LMH.get_logic(LogicModuleEnum.SELECTION_MANAGER)
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
+        SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         if self.path is not None:
             SvM.stop()
@@ -278,6 +281,7 @@ class ProjectManager:
             self.status = ProjectStatus.READY
         SeM.deselect_all()
         BM.close_scheme()
+        SiM.clear_logs()
         SvM.start()
         SvM.connect_venv()
         self.is_opened = True
@@ -359,6 +363,15 @@ class ProjectManager:
                         )
                         print(f"Installed: {package}")
                         wheels_installed.add(package)
+                    else:
+                        subprocess.run(
+                            [
+                                str(python_executable), "-m",
+                                "pip", "install", package
+                            ],
+                            check=True
+                        )
+                        print(f"Installed: {package}")
             else:
                 print(wheels_path)
         except subprocess.CalledProcessError as e:
@@ -481,7 +494,6 @@ class ProjectManager:
         """
         DEPRECATED
         """
-        raise Exception("DEPRECATED")
         icon_path = Path(self.path) / "custom" / "icons"
         icon_list = os.listdir(icon_path)
         icon_list = [os.path.splitext(icon)[0] for icon in icon_list]

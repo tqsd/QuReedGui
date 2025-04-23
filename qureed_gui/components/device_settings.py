@@ -11,7 +11,7 @@ TM = ThemeManager()
 LMH = LogicModuleHandler()
 
 type_mapping = {
-    "int": int,
+    "int": lambda i: int(float(i)),
     "float": float,
     "bool": bool,
     "cmplx": complex,

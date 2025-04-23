@@ -20,11 +20,10 @@ class SimulationPanel(ft.Stack):
                 top=90,
                 right=0,
                 left=0,
-                height=200,
-                bgcolor="yellow",
+                height=0,
                 content=ft.Column(
                     [
-                        SimulationGraph(),
+                        #SimulationGraph(),
                     ],
                     expand=True,
                     scroll=ft.ScrollMode.ALWAYS

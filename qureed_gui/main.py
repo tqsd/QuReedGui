@@ -27,6 +27,9 @@ def window_focus(e) -> None:
     elif e.type == ft.WindowEventType.FOCUS:
         KED.focused = True
 
+def board_render(self, board):
+    board.update()
+
 def main(page: ft.Page) -> None:
     """
     Main function
@@ -47,6 +50,11 @@ def main(page: ft.Page) -> None:
     #page.on_keyboard_event = KED.handle_click
 
     TM = ThemeManager()
+    
+    def scroll_reset(e):
+        BM = LogicModuleHandler().get_logic(LogicModuleEnum.BOARD_MANAGER)
+        BM.reset_scroll()
+
 
     tabs = ft.Container(
         bgcolor=TM.get_nested_color("bg","base"),
@@ -57,6 +65,7 @@ def main(page: ft.Page) -> None:
             indicator_color="white",
             divider_color="black",
             expand=True,
+            on_change=scroll_reset,
             tabs=[
                 ft.Tab(
                     tab_content=ft.Container(
@@ -92,5 +101,6 @@ def main(page: ft.Page) -> None:
     page.add(container)
     page.window.on_event=window_focus
     threading.Thread(target=start_pynput_listener, args=(KED,), daemon=True).start()
+
 
 ft.app(main)

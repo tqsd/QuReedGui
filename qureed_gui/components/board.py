@@ -20,6 +20,7 @@ BOARD_SIZE = 10000
 class Board(ft.Container):
     def __init__(self,page, location_widget):
         super().__init__()
+        print("RENDERING THE BOARD")
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         PM.register_board(self)

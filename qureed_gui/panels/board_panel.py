@@ -8,6 +8,7 @@ TM = ThemeManager()
 
 class BoardPanel(ft.Stack):
     def __init__(self, page:ft.Page):
+        print("RERENDERING BOARD PANEL")
         super().__init__()
         self.page = page
         self.expand = True

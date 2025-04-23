@@ -252,3 +252,5 @@ class BoardManager:
             self.board_controls.left=width
             self.board_controls.update()
 
+    def reset_scroll(self):
+        self.board.did_mount()
