@@ -37,7 +37,7 @@ class SimulationBar(ft.Container):
         self.content = ft.Row(
             [
                 ft.IconButton(
-                    icon=ft.icons.PLAY_ARROW,
+                    icon=ft.Icons.PLAY_ARROW,
                     icon_color="white",
                     tooltip="Start the Simulation",
                     on_click=self.start_simulation,

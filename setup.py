@@ -22,5 +22,9 @@ setup(
     },
     include_package_data=True,
     entry_points={
+        "console_scripts": [
+            "qureed_debug=qureed_gui.main:run",
+            "qureed=qureed_gui.app:cli"
+        ]
     },
 )

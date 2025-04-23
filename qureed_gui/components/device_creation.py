@@ -66,9 +66,6 @@ class DeviceCreation(ft.AlertDialog):
         self.filtered_devices = self.devices
         self.update_device_list()
 
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.active = False
-
     def update_device_list(self):
         """Update the ListView based on filtered devices."""
         self.qureed_devices.controls = [
@@ -94,7 +91,5 @@ class DeviceCreation(ft.AlertDialog):
         self.update_device_list()
             
     def on_close(self, e):
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.active = True
         self.open = False
         e.page.update()

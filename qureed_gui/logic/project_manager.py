@@ -84,6 +84,7 @@ class ProjectManager:
             self.board = None
             self.device_menu = None
             self.inspector = None
+            self.project_explorer = None
             LMH.register(LogicModuleEnum.PROJECT_MANAGER, self)
             self.initialized=True
 
@@ -234,22 +235,10 @@ class ProjectManager:
             file.write("{}")  # Empty JSON object as placeholder
 
         self.update_config({"venv":str(Path(self.path)/".venv")})
-        def configure_project_pip():
-            self.create_venv()
-            self.install("numpy")
-            self.install("qureed_project_server", "qureed")
-            self.install("qutip")
-            self.install("matplotlib")
-            venv = str(Path(path) / ".venv")
-            self.venv = venv
-            self.open_project(path)
-
 
         self.is_opened=True
         if self.device_menu:
             self.device_menu.activate()
-        thread = threading.Thread(target=configure_project_pip, daemon=True)
-        thread.start()
         if self.project_explorer:
             self.project_explorer.update_project()
         

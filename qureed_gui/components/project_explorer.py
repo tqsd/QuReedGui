@@ -36,7 +36,7 @@ class ProjectExplorer(ft.Container):
         self.content = ft.Stack(
             [
                 ft.Container(bottom=3, left=5,content=ft.IconButton(
-                    icon=ft.icons.REFRESH,
+                    icon=ft.Icons.REFRESH,
                     icon_color="white",
                     icon_size=16,
                     on_click=self.update_project
