@@ -9,7 +9,7 @@ import threading
 import shutil
 import toml
 
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from qureed_project_server import server_pb2
 
 LMH = LogicModuleHandler()

@@ -1,6 +1,6 @@
 import flet as ft
-from components.board_component import BoardComponent
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.components.board_component import BoardComponent
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 LMH = LogicModuleHandler()
 

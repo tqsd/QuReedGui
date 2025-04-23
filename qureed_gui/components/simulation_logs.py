@@ -1,6 +1,6 @@
 import flet as ft
 
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from qureed_project_server.utils import tensor_from_message
 from qureed_gui.logic.board_helpers import get_device_icon
 

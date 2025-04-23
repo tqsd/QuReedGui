@@ -1,7 +1,7 @@
 import flet as ft
 
-from theme import ThemeManager
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.theme import ThemeManager
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .icon_dialog import IconDialog
 from .new_device_dialog import NewDeviceDialog
 
@@ -71,8 +71,6 @@ class ProjectMenu(ft.SubmenuButton):
 class FileMenu(ft.SubmenuButton):
     """
     File Menu displays and implements the following options:
-    - New Project
-    - Open Project
     - Save Scheme
     """
     def __init__(self):
@@ -82,14 +80,14 @@ class FileMenu(ft.SubmenuButton):
             color=TM.get_nested_color("toolbar","text")
         ),
         controls=[
-             ft.MenuItemButton(
-                 content=ft.Text("New Project"),
-                 on_click=lambda e: self.pick_dir(self.new_project, e)
-             ),
-             ft.MenuItemButton(
-                 content=ft.Text("Open Project"),
-                 on_click= lambda e: self.pick_dir(self.open_project, e)
-             ),
+             #ft.MenuItemButton(
+             #    content=ft.Text("New Project"),
+             #    on_click=lambda e: self.pick_dir(self.new_project, e)
+             #),
+             #ft.MenuItemButton(
+             #    content=ft.Text("Open Project"),
+             #    on_click= lambda e: self.pick_dir(self.open_project, e)
+             #),
              ft.MenuItemButton(
                  content=ft.Text("Save Scheme"),
                  on_click=self.save_scheme

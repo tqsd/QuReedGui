@@ -4,8 +4,8 @@ from enum import Enum
 
 from google.protobuf.json_format import MessageToDict
 
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-from theme import ThemeManager
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.theme import ThemeManager
 
 TM = ThemeManager()
 LMH = LogicModuleHandler()

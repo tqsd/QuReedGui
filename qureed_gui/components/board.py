@@ -4,9 +4,9 @@ import flet as ft
 
 import flet.canvas as cv
 
-from theme import ThemeManager
-from logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
-from logic.board_helpers import get_device_control
+from qureed_gui.theme import ThemeManager
+from qureed_gui.logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
+from qureed_gui.logic.board_helpers import get_device_control
 from .device_creation import DeviceCreation
 from .canvas import Canvas
 from .select_box import SelectBox
@@ -196,9 +196,6 @@ class BoardContainer(ft.Container):
         self.left=0
         self.bgcolor = TM.get_nested_color("board", "bg")
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.register_hook(' ', self.handle_new_device)
-        KED.register_hook('s', PM.save_scheme, ctrl=True)
         self.offset_x, self.offset_y = (0,0)
 
         self.device_creation_modal= DeviceCreation()

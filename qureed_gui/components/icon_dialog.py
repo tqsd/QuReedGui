@@ -1,9 +1,9 @@
 import re
 import flet as ft
 
-from logic import get_device_icon
-from logic import ProjectManager
-from theme import ThemeManager
+from qureed_gui.logic import get_device_icon
+from qureed_gui.logic import ProjectManager
+from qureed_gui.theme import ThemeManager
 
 TM = ThemeManager()
 PM = ProjectManager()

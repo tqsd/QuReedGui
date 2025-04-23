@@ -4,9 +4,9 @@ import flet as ft
 
 from qureed_project_server import server_pb2
 
-from logic import get_device_icon
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-from theme import ThemeManager
+from qureed_gui.logic import get_device_icon
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.theme import ThemeManager
 
 LMH = LogicModuleHandler()
 TM = ThemeManager()

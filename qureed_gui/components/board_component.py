@@ -5,8 +5,8 @@ A base component, which is the base for the other components
 import flet as ft
 
 from qureed_project_server import server_pb2
-from theme import ThemeManager
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.theme import ThemeManager
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 from .ports import Ports
 

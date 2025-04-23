@@ -1,9 +1,9 @@
 import flet as ft
 
-from components import (
+from qureed_gui.components import (
     SimulationBar, SimulationGraph, SimulationLogs
 )
-from theme import ThemeManager
+from qureed_gui.theme import ThemeManager
 
 class SimulationPanel(ft.Stack):
     """

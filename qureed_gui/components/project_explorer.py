@@ -4,8 +4,8 @@ import subprocess
 import os
 from pathlib import Path
 
-from theme import ThemeManager
-from logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
+from qureed_gui.theme import ThemeManager
+from qureed_gui.logic.logic_module_handler import LogicModuleHandler, LogicModuleEnum
 
 LMH = LogicModuleHandler()
 

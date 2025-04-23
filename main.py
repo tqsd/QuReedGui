@@ -6,26 +6,11 @@ import threading
 
 import flet as ft
 
-from components import Toolbar, StatusBar
-from panels import BoardPanel, SimulationPanel
-from theme import ThemeManager
+from qureed_gui.components import Toolbar, StatusBar
+from qureed_gui.panels import BoardPanel, SimulationPanel
+from qureed_gui.theme import ThemeManager
 
-from logic.keyboard import KeyboardEventDispatcher, start_pynput_listener
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-
-def window_focus(e) -> None:
-    """
-    Window focus hook
-
-    Parameters:
-    -----------
-    e (ft.Event): Event created at the focusing
-    """
-    KED = KeyboardEventDispatcher()
-    if e.type == ft.WindowEventType.BLUR:
-        KED.focused = False
-    elif e.type == ft.WindowEventType.FOCUS:
-        KED.focused = True
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 def board_render(self, board):
     board.update()
@@ -46,8 +31,6 @@ def main(page: ft.Page) -> None:
     page.padding = 0
     page.spacing = 0
 
-    KED = KeyboardEventDispatcher()
-    #page.on_keyboard_event = KED.handle_click
 
     TM = ThemeManager()
     
@@ -99,8 +82,6 @@ def main(page: ft.Page) -> None:
 
     # Add container to the page
     page.add(container)
-    page.window.on_event=window_focus
-    threading.Thread(target=start_pynput_listener, args=(KED,), daemon=True).start()
 
-
-ft.app(main)
+ft.app(target=main, view=ft.WEB_BROWSER) 
+#ft.app(main)

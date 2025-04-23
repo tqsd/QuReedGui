@@ -1,7 +1,7 @@
 import flet as ft
 import flet.canvas as cv
 
-from logic import ConnectionManager
+from qureed_gui.logic import ConnectionManager
 
 CM = ConnectionManager()
 

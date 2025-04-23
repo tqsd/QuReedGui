@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from logic.logic_module_handler import (
+from qureed_gui.logic.logic_module_handler import (
     LogicModuleEnum, LogicModuleHandler
 )
 

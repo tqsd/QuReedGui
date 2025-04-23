@@ -1,7 +1,7 @@
 import flet as ft
-from components import ProjectExplorer, BoardContainer
-from components.board import Board
-from theme import ThemeManager
+from qureed_gui.components import ProjectExplorer, BoardContainer
+from qureed_gui.components.board import Board
+from qureed_gui.theme import ThemeManager
 
 TM = ThemeManager()
 

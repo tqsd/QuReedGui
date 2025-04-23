@@ -3,7 +3,7 @@ Module containing BoardManager, one of the logic modules.
 """
 from __future__ import annotations
 import typing
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from qureed_project_server import server_pb2
 
 if typing.TYPE_CHECKING:

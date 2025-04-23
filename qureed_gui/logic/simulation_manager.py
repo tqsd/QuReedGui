@@ -1,6 +1,6 @@
 import asyncio
 import uuid 
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 LMH = LogicModuleHandler()
 

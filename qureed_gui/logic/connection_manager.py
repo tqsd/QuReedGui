@@ -3,7 +3,7 @@ Manages the connections between the ports
 """
 from __future__ import annotations
 import typing
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 if typing.TYPE_CHECKING:
     from qureed_gui.components.ports import Port

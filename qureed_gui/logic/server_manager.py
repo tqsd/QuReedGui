@@ -12,7 +12,7 @@ import sys
 import threading
 import traceback
 from pathlib import Path
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 import qureed_project_server.server_pb2 as MSG
 from qureed_project_server.client import GrpcClient
 

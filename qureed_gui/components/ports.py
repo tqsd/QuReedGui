@@ -2,9 +2,9 @@ import inspect
 
 import flet as ft
 
-from theme import ThemeManager
-from logic import BoardManager, ConnectionManager
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.theme import ThemeManager
+from qureed_gui.logic import BoardManager, ConnectionManager
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 
 TM = ThemeManager()
 LMH = LogicModuleHandler()
