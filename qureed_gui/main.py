@@ -3,6 +3,7 @@ QuReed Gui entry point
 """
 
 import threading
+import os
 
 import flet as ft
 
@@ -11,6 +12,8 @@ from qureed_gui.panels import BoardPanel, SimulationPanel
 from qureed_gui.theme import ThemeManager
 
 from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+LMH = LogicModuleHandler()
 
 def board_render(self, board):
     board.update()
@@ -82,6 +85,13 @@ def main(page: ft.Page) -> None:
 
     # Add container to the page
     page.add(container)
+
+    # If project path is set by the runner open the project
+    project_path = os.environ.get("QUREED_CWD")
+    if project_path:
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.open_project(project_path)
+        
 
 ft.app(target=main, view=ft.WEB_BROWSER) 
 #ft.app(main)

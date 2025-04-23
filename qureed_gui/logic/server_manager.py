@@ -3,6 +3,7 @@ This module impements server management class, which
 also manages the communication with the server
 """
 import inspect
+import os
 import uuid
 import asyncio
 import time
@@ -144,10 +145,13 @@ class ServeManager:
         """
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
 
-        python_executable = Path(PM.venv) / "bin" / "python" if sys.platform != "win32" else Path(PM.venv) / "Scripts" / "python.exe"
-        python_executable = Path(PM.venv) / (
-            "bin/python" if sys.platform != "win32" else "Scripts/python.exe"
-        )
+        python_executable = Path(os.environ.get("QUREED_PY_EXE"))
+
+        if not python_executable:
+            python_executable = Path(PM.venv) / "bin" / "python" if sys.platform != "win32" else Path(PM.venv) / "Scripts" / "python.exe"
+            python_executable = Path(PM.venv) / (
+                "bin/python" if sys.platform != "win32" else "Scripts/python.exe"
+            )
 
 
         if not python_executable.exists():

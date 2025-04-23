@@ -259,15 +259,7 @@ class ProjectManager:
             SvM.stop()
         self.path = path
         conf = self.load_config()
-        venv = str(Path(path) / ".venv")
-        venv = conf.get("venv", venv)
-        self.update_config({"venv":venv})
-        self.venv = venv
-        if not Path(venv).exists():
-            self.create_venv()
-            self.install()
-        else:
-            self.status = ProjectStatus.READY
+        self.status = ProjectStatus.READY
         SeM.deselect_all()
         BM.close_scheme()
         SiM.clear_logs()

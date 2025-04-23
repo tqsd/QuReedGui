@@ -27,7 +27,8 @@ class IconDialog(ft.AlertDialog):
 
         # FilePicker instance
         self.file_picker = ft.FilePicker(
-            on_result=self.process_icon
+            on_result=self.process_icon,
+            read_content=True
         )
         page.overlay.append(self.file_picker)  # Add FilePicker to the page overlay
 
@@ -82,7 +83,9 @@ class IconDialog(ft.AlertDialog):
 
     def process_icon(self, e):
         """Handle the result of the file picker."""
+        print(e)
         if e.files:
+            print(e.files[0].content)
             self.image_path = e.files[0].path  # Get the first file's path
             self.image_path_text.value = self.image_path  # Update the Text control
             self.image_container.content = ft.Image(

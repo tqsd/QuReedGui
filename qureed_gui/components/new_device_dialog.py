@@ -217,8 +217,6 @@ class NewDeviceDialog(ft.AlertDialog):
             height = DIALOG_HEIGHT, width=DIALOG_WIDTH,
             content=self.column,
             )
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.active = False
 
     def on_confirm(self, e):
         if self.device_name.value == "":
@@ -290,14 +288,10 @@ class NewDeviceDialog(ft.AlertDialog):
         PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
         PM.project_explorer.update_project()
 
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.active = True
         self.open = False
         e.page.update()
 
     def on_cancel(self, e):
         self.open = False  # Set the dialog's open property to False
         e.page.update() 
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        KED.active = True
         
