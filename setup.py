@@ -14,8 +14,13 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "flet==0.26",
+        "flet==0.27.4",
+        "flet-desktop==0.27.4",
+        "rapidfuzz",
         "toml",
+        "click",
+        "qureed-project-server @ git+ssh://git@github.com/tqsd/QuReedGuiServer.git@master",
+        "qureed @ git+ssh://git@github.com/tqsd/QuReed.git@standardization",
     ],
     package_data={
         "qureed_gui":[" wheels/**/*.whl"],
