@@ -14,8 +14,8 @@ setup(
     license="Apache 2.0",
     packages=find_packages(where="."),
     install_requires=[
-        "flet==0.27.4",
-        "flet-desktop==0.27.4",
+        "flet==0.27.6",
+        "flet-desktop==0.27.6",
         "rapidfuzz",
         "toml",
         "click",
