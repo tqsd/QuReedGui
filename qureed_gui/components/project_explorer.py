@@ -72,8 +72,9 @@ class ProjectExplorer(ft.Container):
             self.file_list.controls = recursive_tree_update(self.files)
         except Exception as e:
             print(e)
-        self.file_list.update()
-        self.page.update()
+        if self.page:
+            self.file_list.update()
+            self.page.update()
 
     def toggle_explorer(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
@@ -169,9 +170,12 @@ class File(ft.TextButton):
         self.absolute_path = Path(PM.path) / Path(self.path)
 
 
+
         if self.name[-3:] == ".py" and "devices" in str(self.path):
+            print("RENDERING A CUSTOM DEVICE")
 
             device = SvM.get_device(PM.path + "/"+ self.path)
+            print(device.status)
             if device.status == "failure":
                 return
             device = device.device

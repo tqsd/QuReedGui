@@ -11,9 +11,6 @@ from qureed_gui.components import Toolbar, StatusBar
 from qureed_gui.panels import BoardPanel, SimulationPanel
 from qureed_gui.theme import ThemeManager
 
-from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-
-LMH = LogicModuleHandler()
 
 def board_render(self, board):
     board.update()
@@ -28,8 +25,6 @@ def main(page: ft.Page) -> None:
     -----------
     page (ft.Page): flet Page instance
     """
-    PM = LogicModuleHandler().get_logic(LogicModuleEnum.PROJECT_MANAGER)
-    PM.register_page(page)
     page.title = "QuReed"
     page.padding = 0
     page.spacing = 0
@@ -51,7 +46,7 @@ def main(page: ft.Page) -> None:
             indicator_color="white",
             divider_color="black",
             expand=True,
-            on_change=scroll_reset,
+            #on_change=scroll_reset,
             tabs=[
                 ft.Tab(
                     tab_content=ft.Container(
@@ -85,12 +80,8 @@ def main(page: ft.Page) -> None:
 
     # Add container to the page
     page.add(container)
+    page.browser_context_menu.disable()
 
-    # If project path is set by the runner open the project
-    project_path = os.environ.get("QUREED_CWD")
-    if project_path:
-        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
-        PM.open_project(project_path)
         
 
 ft.app(target=main, view=ft.WEB_BROWSER) 

@@ -28,8 +28,6 @@ class Toolbar(ft.Container):
 class ProjectMenu(ft.SubmenuButton):
     def __init__(self):
         super().__init__()
-        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
-        PM.register_device_menu(self)
         self.content=ft.Text("Devices",
             color=TM.get_nested_color("toolbar", "text")
             )
@@ -43,6 +41,9 @@ class ProjectMenu(ft.SubmenuButton):
                 on_click=None
                 ),
             ]
+
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.register_device_menu(self)
 
     def toggle_menu(self):
         self.is_menu_open = not self.is_menu_open

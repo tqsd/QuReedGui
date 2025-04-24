@@ -87,6 +87,9 @@ class ProjectManager:
             self.project_explorer = None
             LMH.register(LogicModuleEnum.PROJECT_MANAGER, self)
             self.initialized=True
+            project_path = os.environ.get("QUREED_CWD")
+            if project_path:
+                self.open_project(project_path)
 
     @property
     def status(self):
@@ -100,6 +103,8 @@ class ProjectManager:
 
     def register_device_menu(self, device_menu):
         self.device_menu = device_menu
+        if self.is_opened:
+            self.device_menu.activate()
 
     def register_qureed_inspector(self, inspector):
         self.inspector = inspector
@@ -386,6 +391,8 @@ class ProjectManager:
 
     def register_project_explorer(self, project_explorer):
         self.project_explorer = project_explorer
+        if self.is_opened:
+            self.project_explorer.update_project()
 
     def register_board(self, board):
         self.board = board

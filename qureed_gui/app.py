@@ -4,10 +4,6 @@ import os
 import pathlib
 import click
 
-from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
-
-LMH = LogicModuleHandler()
-PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
 
 @click.group()
 def cli():
@@ -16,6 +12,10 @@ def cli():
 @cli.command()
 @click.argument('name', required=True)
 def create_project(name):
+    from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+
+    LMH = LogicModuleHandler()
+    PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
     cwd = pathlib.Path.cwd() 
     if not click.confirm(f'Do you want to create project here: ({cwd}/name)?'):
         click.echo('Aborting!')

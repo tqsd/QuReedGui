@@ -18,8 +18,6 @@ class SimulationBar(ft.Container):
         self.left = 0
         SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         SiM.register_simulation_tab(self)
-        #SiM = LogicModuleHandler().get_logic(LogicModuleEnum.SIMULATION_MANAGER)
-        #SiM.register_simulation_tab(self)
         self.dropdown = ft.Dropdown(
                 label="Scheme",
                 hint_text="Which scheme will get executed",
@@ -54,6 +52,8 @@ class SimulationBar(ft.Container):
             ],
             alignment=ft.MainAxisAlignment.START
         )
+        PM = LMH.get_logic(LogicModuleEnum.PROJECT_MANAGER)
+        PM.collect_schemes()
 
     def update_simulation_time(self, e):
         text = e.control.value.strip()
@@ -108,10 +108,9 @@ class SimulationBar(ft.Container):
             self.dropdown.value = default_scheme
             SiM.select_scheme(default_scheme)
 
-        self.dropdown.update()
+        if self.page:
+            self.dropdown.update()
 
     def on_scheme_select(self, e):
-        print("SELECTED")
-        print(e)
         SiM = LMH.get_logic(LogicModuleEnum.SIMULATION_MANAGER)
         SiM.select_scheme(e.data)

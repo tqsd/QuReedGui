@@ -37,7 +37,6 @@ class SimulationManager:
 
     def select_scheme(self, scheme=None):
         self.scheme = scheme
-        print(f"Selected a new scheme {self.scheme}")
 
     def clear_logs(self):
         if self.log_component:

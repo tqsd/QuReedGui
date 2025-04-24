@@ -1,5 +1,8 @@
+import sys
 from enum import StrEnum
-
+import traceback
+import os
+print(f"[LMH] PID: {os.getpid()}, FILE: {__file__}")
 
 class LogicModuleEnum(StrEnum):
     """
@@ -41,17 +44,25 @@ class LogicModuleHandler:
     Individual logic modules are registered individually in their 
     initialization methods.
     """
-    _instance = None
 
     def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(LogicModuleHandler, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
+        if hasattr(cls, "_instance"):
+            return cls._instance
 
+        key = "qureed_gui.logic.logic_module_handler._singleton"
+        if key in sys.modules:
+            cls._instance = sys.modules[key]
+        else:
+            cls._instance = super().__new__(cls)
+            sys.modules[key] = cls._instance
+            cls._instance.modules = {}
+            cls._instance.initialized = True
+            print("Initialized singleton LogicModuleHandler")
+            traceback.print_stack()
+
+        return cls._instance
     def __init__(self):
-        if not hasattr(self,"initialized"):
-            self.modules = {}
-            self.initialized=True
+        pass
 
     def register(self, module_type:LogicModuleEnum, module:type):
         """
@@ -74,5 +85,9 @@ class LogicModuleHandler:
         -----------
         module_type (LogicModuleEnum): Requested logic module
         """
-        return self.modules[module_type]
+        try:
+            return self.modules[module_type]
+        except Exception as e:
+            print(self)
+            
         

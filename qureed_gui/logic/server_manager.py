@@ -49,7 +49,7 @@ def find_unused_port(start=50000, end=60000):
     raise RuntimeError("No unused port found in the specified range.")
 
 
-class ServeManager:
+class ServerManager:
     """
     ServerManager (Singleton) manages the project server and the
     communication with it. The created server is listening on the
@@ -94,7 +94,7 @@ class ServeManager:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(ServeManager, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super(ServerManager, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self):

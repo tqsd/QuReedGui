@@ -192,6 +192,7 @@ class BoardManager:
             on the board component
         """
         if self.board:
+            print("adding a new device", device)
             new_device = server_pb2.Device()
             new_device.CopyFrom(device)
             self.board.add_device(new_device)

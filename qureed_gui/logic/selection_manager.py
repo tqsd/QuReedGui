@@ -21,8 +21,7 @@ class SelectionManager:
         self.device_settings = device_settings
 
     def new_selection(self, components):
-        KED = LMH.get_logic(LogicModuleEnum.KEYBOARD_DISPATCHER)
-        if not KED.SHIFT:
+        if False:
             for component in self.selected_components:
                 component.deselect()
             self.selected_components = components
@@ -47,4 +46,5 @@ class SelectionManager:
             except Exception:
                 print("Component doesn't exist anymore")
         self.selected_components = []
-        self.device_settings.hide_settings()
+        if self.device_settings:
+            self.device_settings.hide_settings()

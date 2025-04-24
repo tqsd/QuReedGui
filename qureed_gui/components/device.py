@@ -2,8 +2,8 @@ import uuid
 import flet as ft
 
 from .board_component import BoardComponent
-from logic import get_device_icon
-from logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic import get_device_icon
+from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
 from .ports import Ports
 from theme import ThemeManager
 
