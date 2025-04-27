@@ -2,13 +2,13 @@
 
 This repository contains the code for QuReed GUI. Qureed contains only the 'business logic'.
 
-Depencencies:
+Dependencies:
 	- QuReed GUI relies on the QuReedGUIServer, which is essential for the communication between the GUI and the project runtime. It is responsible for separating the GUI runtime and the project runtime. This prevents the runtime pollution.
 
 
 ## Installation
 
-If using windows, I recommend using Anaconda for venv management (see Caveats). In Linux/MacOs use your preffered venv manager.
+If using windows, I recommend using Anaconda for venv management (see Caveats). In Linux/MacOs use your preferred venv manager.
 
 After the venv was created and activated simply run:
 
@@ -37,7 +37,7 @@ When creating the project with the `qureed create-project` utility, the default 
 QuReed already ships with built-in icons. If more icons are needed, you can simply add them to the `<project-name>/custom/icons` folder. Builtin utility for adding the icons is not working in the browser mode.
 
 ### Creating new devices
-QuReed already ships with built-in devices. If more devices are neede, you can use the Gui to create the device. When the dialog is opened you must choose a name, icon, ports (optional) and parameters (optional).
+QuReed already ships with built-in devices. If more devices are needed, you can use the Gui to create the device. When the dialog is opened you must choose a name, icon, ports (optional) and parameters (optional).
 
 When specifying the ports you define what kind of data you intend to receive at the port (input case) and what kind of data you intend produce (output case).
 
@@ -47,7 +47,7 @@ Logic of the device needs to be defined in the method `des(self, time, *args, **
 
 ### Logging the data in the simulation
 You can use three different logging methods implemented in the [`GenericDevice`](https://github.com/tqsd/QuReed/blob/standardization/qureed/devices/generic_device.py) class.
-1. `log_message`: Simly logs the given string as the message.
+1. `log_message`: Simply logs the given string as the message.
 2. `log_state`: Logs the state, you can pass in the message as well as the state.
 3. `log_plot`: Logs the message and the figure `matplotlib.Figure` as well as the figure name, which is used to save the logged figure.
 
@@ -82,5 +82,5 @@ Icon uploads are not yet supported in the web app. To use custom icons, move the
 # Notes
 
 1. QuReed is in the process of development, so changes can occur in the process.
-2. [PhotonWeave](https://photon-weave.readthedocs.io/en/master/) is the preffered quantum simulation engine and comes preinstalled, implemented devices already use this backend. It is advised that this backend be used for custom devices aswell.
+2. [PhotonWeave](https://photon-weave.readthedocs.io/en/master/) is the preferred quantum simulation engine and comes preinstalled, implemented devices already use this backend. It is advised that this backend be used for custom devices as well.
 
