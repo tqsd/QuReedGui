@@ -2,6 +2,7 @@ import flet as ft
 from rapidfuzz import process
 
 from qureed_gui.logic.logic_module_handler import LogicModuleEnum, LogicModuleHandler
+from qureed_gui.logic import get_device_icon
 from qureed_project_server import server_pb2
 
 LMH = LogicModuleHandler()
@@ -13,7 +14,24 @@ class Device(ft.Container):
         self.device=device
         self.device_tags = device.gui_tags
         self.on_click= self.add_device
-        self.content=ft.Text(self.name)
+        icon_path = getattr(device.icon, "abs_path", None)
+        if icon_path:
+            icon_image = ft.Image(src_base64=get_device_icon(icon_path))
+        else:
+            icon_image = ft.Container(width=10, height=10)  # fallback
+        self.content=ft.Row(
+            [
+             ft.Container(
+                 height=30,
+                 width=30,
+                 padding=0,
+                 margin=0,
+                 content=icon_image,
+                 ),
+             ft.Text(self.name, size=14, no_wrap=True),
+            ]
+            )
+        #self.content=ft.Text(self.name)
 
     def add_device(self, e):
         BM = LMH.get_logic(LogicModuleEnum.BOARD_MANAGER)
@@ -28,13 +46,20 @@ class DeviceCreation(ft.AlertDialog):
         super().__init__()
         self.modal=False
         self.title=ft.Text("Select a Device")
+        self.bgcolor = ft.Colors.with_opacity(0.9, "#101010")
 
         self.filtered_devices = []
         self.search_query = ""
         self.devices = []
 
-        self.qureed_devices=ft.ListView(
-            self.filtered_devices
+        self.qureed_devices=ft.Column(
+            self.filtered_devices,
+            scroll=ft.ScrollMode.ALWAYS,
+            tight=True,
+            expand=True,
+            width=300,
+            alignment=ft.MainAxisAlignment.START,
+            spacing=0,
             )
 
         self.content=ft.Column(
@@ -46,11 +71,10 @@ class DeviceCreation(ft.AlertDialog):
              ft.Divider(),
              self.qureed_devices,
              ft.Divider(),
-             ft.Row(
-                 [
-                    ]
-             )
-             ]
+             ft.Row([])
+             ],
+            alignment=ft.MainAxisAlignment.START,
+            spacing=0
             )
         self.actions = [
             ft.TextButton("Close", on_click=self.on_close),
@@ -61,7 +85,6 @@ class DeviceCreation(ft.AlertDialog):
         SvM = LMH.get_logic(LogicModuleEnum.SERVER_MANAGER)
         all_devices = SvM.get_all_devices()
         PM.display_message("Grabbing Existing Devices")
-
         self.devices = all_devices.devices
         self.filtered_devices = self.devices
         self.update_device_list()
