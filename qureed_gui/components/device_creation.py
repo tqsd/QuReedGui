@@ -50,7 +50,8 @@ class DeviceCreation(ft.AlertDialog):
                  [
                     ]
              )
-             ]
+             ],
+            scroll=ft.ScrollMode.ALWAYS
             )
         self.actions = [
             ft.TextButton("Close", on_click=self.on_close),
